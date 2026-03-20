@@ -1,0 +1,26 @@
+track rRNA_reference
+bigDataUrl H.sapiens_ref_bedRmod_All.bigBed
+shortLabel Reference mods
+longLabel Known H. sapiens rRNA modifications (all types, curated)
+type bigBed 9
+itemRgb on
+visibility pack
+priority 1
+
+track rRNA_sample_MRI01
+bigDataUrl rRNA_mature_bedRmod_Detection_EM_mean2_Log10_1.8_modOnly_Sample_MRI01.bigBed
+shortLabel MRI01 detected
+longLabel MRI01 — EM-detected modifications 
+type bigBed 9
+itemRgb on
+visibility pack
+priority 2
+
+track rRNA_filtered
+bigDataUrl rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods _no_m5C.bigBed
+shortLabel Filtered mods
+longLabel Filtered modifications 
+type bigBed 9
+itemRgb on
+visibility pack
+priority 3

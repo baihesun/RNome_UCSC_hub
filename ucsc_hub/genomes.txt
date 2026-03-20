@@ -1,0 +1,9 @@
+genome hs_rRNA
+trackDb trackDb.txt
+description Human rRNA sequences
+twoBitPath hs_rRNAs_NR_046235.2bit
+organism Homo sapiens
+defaultPos hs_rRNA_18S:1-1869
+orderKey 1
+scientificName Homo sapiens
+htmlPath hubDescription.html
