@@ -2,5 +2,5 @@ hub        hs_rRNA_modifications
 shortLabel Human rRNA Modifications
 longLabel  Human rRNA RNA modifications (18S, 28S, 5.8S, 5S)
 genomesFile genomes.txt
-email      baihe_sun@dfci.harvard.edu
+email      your@email.com
 descriptionUrl hubDescription.html

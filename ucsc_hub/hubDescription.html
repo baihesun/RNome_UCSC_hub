@@ -2,8 +2,15 @@
 <p>RNA modification tracks for human rRNA sequences (18S, 28S, 5.8S, 5S).</p>
 <p>Track colors encode both modification type (hue) and stoichiometry (saturation).
 Vivid colors indicate highly modified sites; pale colors indicate partially modified sites.</p>
+<h2>Score</h2>
+<p>The score (shading intensity) reflects detection confidence, rescaled to 0-1000 per file.
+Darker = higher confidence. Note: scores are rescaled independently per file and are not
+directly comparable across tracks.</p>
+<h2>Extra fields (visible on click)</h2>
+<p>Clicking any site in the browser shows coverage (raw read depth) and frequency
+(% of reads showing the modification).</p>
 <h2>Modification type color key</h2>
-<table>
+<table border="1" cellpadding="4">
 <tr><th>Modification</th><th>Type</th><th>Color family</th></tr>
 <tr><td>Am, Cm, Gm, Um, Ym</td><td>2'-O-methylation</td><td>Blue</td></tr>
 <tr><td>m6A, m66A, m1A</td><td>N-methyladenosine</td><td>Red / Orange</td></tr>
