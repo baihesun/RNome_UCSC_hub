@@ -97,8 +97,8 @@ https://baihesun.github.io/rRNA_dataviz/ucsc_hub/hub.txt
 | Track | Description |
 |---|---|
 | Reference mods | Curated known modifications from published literature |
-| MRI01 detected | Modifications detected in sample MRI01 (EM algorithm, log10 score > 1.8) |
-| Filtered mods | High-confidence sites (coverage ≥ 1000, frequency ≥ 0.99, no m5C) |
+| MRI01 detected | Modifications detected in sample MRI01 |
+| Filtered mods | High-confidence sites |
 
 ### BED columns
 
