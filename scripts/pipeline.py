@@ -35,6 +35,7 @@ import os
 import colorsys
 import subprocess
 import sys
+from collections import defaultdict
 
 # ── Edit these paths ──────────────────────────────────────────────────────────
 INPUT_DIR   = "Test_visualization_data_rRNA"
@@ -48,6 +49,9 @@ INPUT_FILES = {
     "filtered": "rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods _no_m5C.bed",
 }
 FASTA_FAI = "hs_rRNAs_NR_046235.fa.fai"
+
+# Keys from INPUT_FILES to merge into the consensus track
+CONSENSUS_KEYS = ["sample", "filtered"]
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Base hues (0-1) per modification type
@@ -88,6 +92,75 @@ def frequency_to_rgb(mod_type, frequency):
     freq = max(0.0, min(100.0, float(frequency)))
     r, g, b = colorsys.hsv_to_rgb(hue, freq / 100.0, 0.85)
     return f"{int(r*255)},{int(g*255)},{int(b*255)}"
+
+
+def consensus_rgb(count, total):
+    """
+    Sequential red colormap for the consensus track.
+    count/total = fraction of samples showing the modification.
+      1/N → light pink-red
+      N/N → dark red
+    """
+    t = count / total
+    r = int(255 - (255 - 180) * t)   # 255 → 180
+    g = int(230 * (1 - t))            # 230 → 0
+    b = int(230 * (1 - t))            # 230 → 0
+    return f"{r},{g},{b}"
+
+
+def make_consensus_bed(fixed_bed_paths, output_path):
+    """
+    Merge processed BED files into a single consensus track.
+
+    For each unique (chrom, start, mod_type) position:
+      - Count in how many of the N input files it appears.
+      - Color using a sequential red scale (light = rare, dark = universal).
+      - Retain the row with the highest frequency; average scores.
+    """
+    total = len(fixed_bed_paths)
+    # (chrom, start, mod_type) -> list of (frequency, cols)
+    pos_data = defaultdict(list)
+
+    for bed_path in fixed_bed_paths:
+        with open(bed_path) as fh:
+            for line in fh:
+                line = line.rstrip("\r\n")
+                if not line or line.startswith("#"):
+                    continue
+                cols = line.split("\t")
+                if len(cols) < 9:
+                    continue
+                chrom    = cols[0]
+                start    = cols[1]
+                mod_type = cols[3].strip()
+                try:
+                    freq = float(cols[10]) if len(cols) >= 11 else 0.0
+                except ValueError:
+                    freq = 0.0
+                pos_data[(chrom, start, mod_type)].append((freq, cols))
+
+    rows = []
+    for (chrom, start, mod_type), entries in pos_data.items():
+        count = len(entries)
+        # Use the row with the highest observed frequency
+        _, best_cols = max(entries, key=lambda x: x[0])
+        out_cols = best_cols[:]
+        out_cols[8] = consensus_rgb(count, total)
+        rows.append(out_cols)
+
+    rows.sort(key=lambda c: (c[0], int(c[1])))
+
+    with open(output_path, "w") as out:
+        for cols in rows:
+            out.write("\t".join(cols[:11]) + "\n")
+
+    # Summary
+    tally = defaultdict(int)
+    for entries in pos_data.values():
+        tally[len(entries)] += 1
+    print(f"    {len(rows)} consensus sites written -> {output_path}")
+    for k in sorted(tally):
+        print(f"    {tally[k]} sites observed in {k}/{total} samples")
 
 
 def process_bed(input_path, output_path):
@@ -227,7 +300,7 @@ htmlPath hubDescription.html
 
 def write_trackdb_txt(out_dir, bigbed_names):
     path = os.path.join(out_dir, "trackDb.txt")
-    ref_bb, sample_bb, filtered_bb = bigbed_names
+    ref_bb, sample_bb, filtered_bb, consensus_bb = bigbed_names
     with open(path, "w") as f:
         f.write(f"""\
 track rRNA_reference
@@ -262,6 +335,17 @@ visibility pack
 scoreMin 0
 scoreMax 1000
 priority 3
+
+track rRNA_consensus
+bigDataUrl {consensus_bb}
+shortLabel Consensus mods
+longLabel Consensus modifications (sample + filtered); color = observation frequency (light red = 1/2, dark red = 2/2)
+type bigBed 9 +
+itemRgb on
+visibility pack
+scoreMin 0
+scoreMax 1000
+priority 4
 """)
     print(f"    Written {path}")
 
@@ -278,6 +362,14 @@ Vivid colors indicate highly modified sites; pale colors indicate partially modi
 <p>The score (shading intensity) reflects detection confidence, rescaled to 0-1000 per file.
 Darker = higher confidence. Note: scores are rescaled independently per file and are not
 directly comparable across tracks.</p>
+<h2>Consensus track</h2>
+<p>The <strong>Consensus</strong> track merges the sample and filtered tracks.
+Colors use a sequential red scale based on how often the modification is observed:</p>
+<table border="1" cellpadding="4">
+<tr><th>Observation</th><th>Color</th></tr>
+<tr><td>1 / 2 samples</td><td style="background:#d97373">Light red</td></tr>
+<tr><td>2 / 2 samples</td><td style="background:#b40000;color:white">Dark red</td></tr>
+</table>
 <h2>Extra fields (visible on click)</h2>
 <p>Clicking any site in the browser shows coverage (raw read depth) and frequency
 (% of reads showing the modification).</p>
@@ -314,6 +406,17 @@ def main():
         fixed_beds[key]   = fixed_path
         bigbed_names[key] = bigbed_name
 
+    print("\n── Step 2b: Build consensus track ──────────────────────────────────────")
+    consensus_fixed  = os.path.join(OUTPUT_DIR, "consensus.fixed.bed")
+    consensus_bb_name = "consensus.bigBed"
+    print(f"\n  consensus ({' + '.join(CONSENSUS_KEYS)}):")
+    make_consensus_bed(
+        [fixed_beds[k] for k in CONSENSUS_KEYS],
+        consensus_fixed,
+    )
+    fixed_beds["consensus"]   = consensus_fixed
+    bigbed_names["consensus"] = consensus_bb_name
+
     print("\n── Step 3: Write AutoSql file ───────────────────────────────────────────")
     as_path = write_autosql(OUTPUT_DIR)
 
@@ -330,6 +433,7 @@ def main():
         bigbed_names["ref"],
         bigbed_names["sample"],
         bigbed_names["filtered"],
+        bigbed_names["consensus"],
     ])
     write_description_html(OUTPUT_DIR)
 
