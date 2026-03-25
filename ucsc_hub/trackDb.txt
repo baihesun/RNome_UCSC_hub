@@ -1,7 +1,7 @@
 track rRNA_reference
 bigDataUrl H.sapiens_ref_bedRmod_All.bigBed
 shortLabel Reference mods
-longLabel Known H. sapiens rRNA modifications (all types, curated)
+longLabel Known rRNA modifications 
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -12,7 +12,7 @@ priority 1
 track rRNA_sample_MRI01
 bigDataUrl rRNA_mature_bedRmod_Detection_EM_mean2_Log10_1.8_modOnly_Sample_MRI01.bigBed
 shortLabel MRI01 detected
-longLabel MRI01 — EM-detected modifications (log10 score > 1.8)
+longLabel MRI01 — EM-detected modifications 
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -23,7 +23,7 @@ priority 2
 track rRNA_filtered
 bigDataUrl rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods _no_m5C.bigBed
 shortLabel Filtered mods
-longLabel Filtered modifications (MOD>=10, coverage>=1000, freq>=0.99, no m5C)
+longLabel Filtered modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -34,7 +34,7 @@ priority 3
 track rRNA_consensus
 bigDataUrl consensus.bigBed
 shortLabel Consensus mods
-longLabel Consensus modifications (sample + filtered); color = observation frequency (light red = 1/2, dark red = 2/2)
+longLabel Consensus modifications; color = observation frequency (light red = 1/2, dark red = 2/2)
 type bigBed 9 +
 itemRgb on
 visibility pack
