@@ -34,7 +34,7 @@ priority 3
 track rRNA_consensus
 bigDataUrl consensus.bigBed
 shortLabel Consensus mods
-longLabel Consensus modifications; color = observation frequency (light red = 1/2, dark red = 2/2)
+longLabel Consensus modifications (sample + filtered); color = observation frequency (yellow = 1/2, green = 2/2)
 type bigBed 9 +
 itemRgb on
 visibility pack

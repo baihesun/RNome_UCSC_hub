@@ -96,15 +96,15 @@ def frequency_to_rgb(mod_type, frequency):
 
 def consensus_rgb(count, total):
     """
-    Sequential red colormap for the consensus track.
-    count/total = fraction of samples showing the modification.
-      1/N → light pink-red
-      N/N → dark red
+    Color for the consensus track based on observation count:
+      1/N → yellow (255, 220, 0)
+      N/N → green  (0, 180, 0)
+    Intermediate counts interpolate between the two.
     """
-    t = count / total
-    r = int(255 - (255 - 180) * t)   # 255 → 180
-    g = int(230 * (1 - t))            # 230 → 0
-    b = int(230 * (1 - t))            # 230 → 0
+    t = (count - 1) / (total - 1) if total > 1 else 1.0
+    r = int(255 * (1 - t))          # 255 → 0
+    g = int(220 + (180 - 220) * t)  # 220 → 180
+    b = 0
     return f"{r},{g},{b}"
 
 
@@ -339,7 +339,7 @@ priority 3
 track rRNA_consensus
 bigDataUrl {consensus_bb}
 shortLabel Consensus mods
-longLabel Consensus modifications; color = observation frequency (light red = 1/2, dark red = 2/2)
+longLabel Consensus modifications (sample + filtered); color = observation frequency (yellow = 1/2, green = 2/2)
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -367,8 +367,8 @@ directly comparable across tracks.</p>
 Colors use a sequential red scale based on how often the modification is observed:</p>
 <table border="1" cellpadding="4">
 <tr><th>Observation</th><th>Color</th></tr>
-<tr><td>1 / 2 samples</td><td style="background:#d97373">Light red</td></tr>
-<tr><td>2 / 2 samples</td><td style="background:#b40000;color:white">Dark red</td></tr>
+<tr><td>1 / 2 samples</td><td style="background:#ffdc00">Yellow</td></tr>
+<tr><td>2 / 2 samples</td><td style="background:#00b400;color:white">Green</td></tr>
 </table>
 <h2>Extra fields (visible on click)</h2>
 <p>Clicking any site in the browser shows coverage (raw read depth) and frequency
