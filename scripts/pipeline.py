@@ -306,7 +306,7 @@ def write_trackdb_txt(out_dir, bigbed_names):
 track rRNA_reference
 bigDataUrl {ref_bb}
 shortLabel Reference mods
-longLabel Known H. sapiens rRNA modifications (all types, curated)
+longLabel Known rRNA modifications 
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -317,7 +317,7 @@ priority 1
 track rRNA_sample_MRI01
 bigDataUrl {sample_bb}
 shortLabel MRI01 detected
-longLabel MRI01 — EM-detected modifications (log10 score > 1.8)
+longLabel MRI01 — EM-detected modifications 
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -328,7 +328,7 @@ priority 2
 track rRNA_filtered
 bigDataUrl {filtered_bb}
 shortLabel Filtered mods
-longLabel Filtered modifications (MOD>=10, coverage>=1000, freq>=0.99, no m5C)
+longLabel Filtered modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -339,7 +339,7 @@ priority 3
 track rRNA_consensus
 bigDataUrl {consensus_bb}
 shortLabel Consensus mods
-longLabel Consensus modifications (sample + filtered); color = observation frequency (light red = 1/2, dark red = 2/2)
+longLabel Consensus modifications; color = observation frequency (light red = 1/2, dark red = 2/2)
 type bigBed 9 +
 itemRgb on
 visibility pack
