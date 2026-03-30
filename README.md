@@ -13,7 +13,7 @@ rRNA_dataviz_repo/
 │   ├── hs_rRNAs_NR_046235.fa                                                      # Human rRNA reference sequences (FASTA)
 │   ├── hs_rRNAs_NR_046235.fa.fai                                                  # FASTA index
 │   ├── rRNA_mature_bedRmod_Detection_EM_mean2_Log10_1.8_modOnly_Sample_MRI01.bed  # Experimental sample (MRI01)
-│   └── rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods _no_m5C.bed    # Filtered high-confidence sites
+│   └── rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods _no_m5C.bed    # Filtered 
 │
 ├── Scripts/
 │   └── pipeline.py                     # End-to-end pipeline (see below)
