@@ -1,0 +1,7 @@
+track SRS000090_variants
+bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_merged.vcf.gz
+shortLabel SRS000090 variants
+longLabel SRS000090 WGS merged variant calls (two-caller)
+type vcfTabix
+visibility squish
+maxWindowToDraw 200000
