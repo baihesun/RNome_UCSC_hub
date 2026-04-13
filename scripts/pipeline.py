@@ -25,7 +25,7 @@ After running:
     2. Push the entire repo to GitHub (run from repo root):
            cd /Users/baihesun/Downloads/rRNA_dataviz_repo
            git add .
-           git commit -m "Add filter by mod"
+           git commit -m "color match with custom web"
            git push -u origin main
     3. In UCSC: My Data > Track Hubs > My Hubs
            Paste: https://baihesun.github.io/rRNA_dataviz/ucsc_hub/hub.txt

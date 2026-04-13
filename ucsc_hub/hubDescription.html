@@ -1,29 +1,48 @@
 <h1>Human rRNA Modifications</h1>
 <p>RNA modification tracks for human rRNA sequences (18S, 28S, 5.8S, 5S).</p>
-<p>Track colors encode both modification type (hue) and stoichiometry (saturation).
-Vivid colors indicate highly modified sites; pale colors indicate partially modified sites.</p>
+<p>Each site is colored by modification type. Color saturation encodes stoichiometry:
+vivid = highly modified site, pale/gray = partially modified site.</p>
+
 <h2>Score</h2>
-<p>The score (shading intensity) reflects detection confidence, rescaled to 0-1000 per file.
-Darker = higher confidence. Note: scores are rescaled independently per file and are not
-directly comparable across tracks.</p>
+<p>The score reflects detection confidence, rescaled to 0–1000 per file.
+Higher score = higher confidence. Scores are rescaled independently per file and are
+not directly comparable across tracks.</p>
+
+<h2>Filters (MRI01 detected and Filtered mods tracks)</h2>
+<p>Two interactive filters are available on these tracks via the track settings panel:</p>
+<ul>
+  <li><strong>Modification frequency (%)</strong> — range slider to show only sites above a minimum frequency</li>
+  <li><strong>Modification type</strong> — checklist to show only selected modification types</li>
+</ul>
+
 <h2>Consensus track</h2>
 <p>The <strong>Consensus</strong> track merges the sample and filtered tracks.
-Colors use a sequential red scale based on how often the modification is observed:</p>
+Color encodes how often the modification is observed across inputs:</p>
 <table border="1" cellpadding="4">
 <tr><th>Observation</th><th>Color</th></tr>
 <tr><td>1 / 2 samples</td><td style="background:#ffdc00">Yellow</td></tr>
 <tr><td>2 / 2 samples</td><td style="background:#00b400;color:white">Green</td></tr>
 </table>
+
 <h2>Extra fields (visible on click)</h2>
-<p>Clicking any site in the browser shows coverage (raw read depth) and frequency
-(% of reads showing the modification).</p>
+<p>Clicking any site shows coverage (raw read depth) and frequency (% of reads showing the modification).</p>
+
 <h2>Modification type color key</h2>
 <table border="1" cellpadding="4">
-<tr><th>Modification</th><th>Type</th><th>Color family</th></tr>
-<tr><td>Am, Cm, Gm, Um, Ym</td><td>2'-O-methylation</td><td>Blue</td></tr>
-<tr><td>m6A, m66A, m1A</td><td>N-methyladenosine</td><td>Red / Orange</td></tr>
-<tr><td>Y, m1acp3Y</td><td>Pseudouridine</td><td>Teal</td></tr>
-<tr><td>m5C, ac4C</td><td>Cytosine modifications</td><td>Green</td></tr>
-<tr><td>m7G</td><td>N7-methylguanosine</td><td>Purple</td></tr>
-<tr><td>m3U</td><td>3-methyluridine</td><td>Amber</td></tr>
+<tr><th>Modification</th><th>Type</th><th>Color</th></tr>
+<tr><td>m6A</td><td>N6-methyladenosine</td><td style="background:#003f5c;color:white">#003f5c</td></tr>
+<tr><td>Am</td><td>2'-O-methyladenosine</td><td style="background:#1464a0;color:white">#1464a0</td></tr>
+<tr><td>Ino</td><td>Inosine</td><td style="background:#0e8fd4;color:white">#0e8fd4</td></tr>
+<tr><td>m1A</td><td>N1-methyladenosine</td><td style="background:#00b4d8;color:white">#00b4d8</td></tr>
+<tr><td>m66A</td><td>N6,N6-dimethyladenosine</td><td style="background:#00d4b4;color:white">#00d4b4</td></tr>
+<tr><td>m1acp3Y</td><td>1-methyl-3-(3-amino-3-carboxypropyl)pseudouridine</td><td style="background:#00c875;color:white">#00c875</td></tr>
+<tr><td>Y</td><td>Pseudouridine</td><td style="background:#90be6d">#90be6d</td></tr>
+<tr><td>Ym</td><td>2'-O-methylpseudouridine</td><td style="background:#c9b84c">#c9b84c</td></tr>
+<tr><td>Um</td><td>2'-O-methyluridine</td><td style="background:#ffa600">#ffa600</td></tr>
+<tr><td>m3U</td><td>3-methyluridine</td><td style="background:#ff7c43">#ff7c43</td></tr>
+<tr><td>Gm</td><td>2'-O-methylguanosine</td><td style="background:#ff6361;color:white">#ff6361</td></tr>
+<tr><td>m7G</td><td>N7-methylguanosine</td><td style="background:#dd7371;color:white">#dd7371</td></tr>
+<tr><td>Cm</td><td>2'-O-methylcytidine</td><td style="background:#ef476f;color:white">#ef476f</td></tr>
+<tr><td>m5C</td><td>5-methylcytidine</td><td style="background:#d45087;color:white">#d45087</td></tr>
+<tr><td>ac4C</td><td>N4-acetylcytidine</td><td style="background:#7b2d8b;color:white">#7b2d8b</td></tr>
 </table>
