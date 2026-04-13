@@ -1,12 +1,13 @@
 track rRNA_reference
 bigDataUrl H.sapiens_ref_bedRmod_All.bigBed
 shortLabel Reference mods
-longLabel Known rRNA modifications 
+longLabel Known rRNA modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+html rRNA_reference
 priority 1
 
 track rRNA_sample_MRI01
@@ -24,6 +25,7 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterValues.name Am,Cm,Gm,Um,Y,m6A
 filterLabel.name Modification type
+html rRNA_sample_MRI01
 priority 2
 
 track rRNA_filtered
@@ -41,6 +43,7 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterValues.name Am,Cm,Gm,Um,Y,m6A
 filterLabel.name Modification type
+html rRNA_filtered
 priority 3
 
 track rRNA_consensus
@@ -52,4 +55,5 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+html rRNA_consensus
 priority 4

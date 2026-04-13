@@ -25,7 +25,7 @@ After running:
     2. Push the entire repo to GitHub (run from repo root):
            cd /Users/baihesun/Downloads/rRNA_dataviz_repo
            git add .
-           git commit -m "Update hub files w dna"
+           git commit -m "Add filter by mod"
            git push -u origin main
     3. In UCSC: My Data > Track Hubs > My Hubs
            Paste: https://baihesun.github.io/rRNA_dataviz/ucsc_hub/hub.txt
@@ -327,12 +327,13 @@ def write_trackdb_txt(out_dir, bigbed_names, mod_type_values):
 track rRNA_reference
 bigDataUrl {ref_bb}
 shortLabel Reference mods
-longLabel Known rRNA modifications 
+longLabel Known rRNA modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+html rRNA_reference
 priority 1
 
 track rRNA_sample_MRI01
@@ -350,6 +351,7 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterValues.name {mod_type_values}
 filterLabel.name Modification type
+html rRNA_sample_MRI01
 priority 2
 
 track rRNA_filtered
@@ -367,6 +369,7 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterValues.name {mod_type_values}
 filterLabel.name Modification type
+html rRNA_filtered
 priority 3
 
 track rRNA_consensus
@@ -378,9 +381,54 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+html rRNA_consensus
 priority 4
 """)
     print(f"    Written {path}")
+
+
+TRACK_HTML_TEMPLATE = """\
+<h2>{short_label}</h2>
+<p><strong>Long label:</strong> {long_label}</p>
+
+<h3>Methods</h3>
+<table border="1" cellpadding="4">
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td>Sequencing technology</td><td>MISSING</td></tr>
+<tr><td>QC applied</td><td>MISSING</td></tr>
+</table>
+
+<h3>Contact</h3>
+<p>MISSING</p>
+"""
+
+TRACK_METADATA = {
+    "rRNA_reference": {
+        "short_label": "Reference mods",
+        "long_label":  "Known rRNA modifications",
+    },
+    "rRNA_sample_MRI01": {
+        "short_label": "MRI01 detected",
+        "long_label":  "MRI01 — EM-detected modifications",
+    },
+    "rRNA_filtered": {
+        "short_label": "Filtered mods",
+        "long_label":  "Filtered modifications",
+    },
+    "rRNA_consensus": {
+        "short_label": "Consensus mods",
+        "long_label":  "Consensus modifications (sample + filtered)",
+    },
+}
+
+
+def write_track_html(out_dir):
+    """Write one HTML description file per track using TRACK_METADATA."""
+    for track_name, meta in TRACK_METADATA.items():
+        path = os.path.join(out_dir, f"{track_name}.html")
+        with open(path, "w") as f:
+            f.write(TRACK_HTML_TEMPLATE.format(**meta))
+        print(f"    Written {path}")
 
 
 def write_description_html(out_dir):
@@ -470,6 +518,7 @@ def main():
         bigbed_names["filtered"],
         bigbed_names["consensus"],
     ], mod_type_values)
+    write_track_html(OUTPUT_DIR)
     write_description_html(OUTPUT_DIR)
 
     print(f"""
