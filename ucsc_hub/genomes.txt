@@ -7,6 +7,3 @@ defaultPos hs_rRNA_18S:1-1869
 orderKey 1
 scientificName Homo sapiens
 htmlPath hubDescription.html
-
-genome hg38
-trackDb trackDb_hg38.txt

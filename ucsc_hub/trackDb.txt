@@ -12,12 +12,16 @@ priority 1
 track rRNA_sample_MRI01
 bigDataUrl rRNA_mature_bedRmod_Detection_EM_mean2_Log10_1.8_modOnly_Sample_MRI01.bigBed
 shortLabel MRI01 detected
-longLabel MRI01 — EM-detected modifications 
+longLabel MRI01 — EM-detected modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.frequency 0
+filterByRange.frequency on
+filterLimits.frequency 0:100
+filterLabel.frequency Modification frequency (%)
 priority 2
 
 track rRNA_filtered
@@ -29,6 +33,10 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.frequency 0
+filterByRange.frequency on
+filterLimits.frequency 0:100
+filterLabel.frequency Modification frequency (%)
 priority 3
 
 track rRNA_consensus

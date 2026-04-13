@@ -25,7 +25,7 @@ After running:
     2. Push the entire repo to GitHub (run from repo root):
            cd /Users/baihesun/Downloads/rRNA_dataviz_repo
            git add .
-           git commit -m "Update hub files"
+           git commit -m "Update hub files w dna"
            git push -u origin main
     3. In UCSC: My Data > Track Hubs > My Hubs
            Paste: https://baihesun.github.io/rRNA_dataviz/ucsc_hub/hub.txt
@@ -275,7 +275,7 @@ hub        hs_rRNA_modifications
 shortLabel Human rRNA Modifications
 longLabel  Human rRNA RNA modifications (18S, 28S, 5.8S, 5S)
 genomesFile genomes.txt
-email      your@email.com
+email      baihe_sun@dfci.harvard.edu
 descriptionUrl hubDescription.html
 """)
     print(f"    Written {path}")
@@ -317,12 +317,16 @@ priority 1
 track rRNA_sample_MRI01
 bigDataUrl {sample_bb}
 shortLabel MRI01 detected
-longLabel MRI01 — EM-detected modifications 
+longLabel MRI01 — EM-detected modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.frequency 0
+filterByRange.frequency on
+filterLimits.frequency 0:100
+filterLabel.frequency Modification frequency (%)
 priority 2
 
 track rRNA_filtered
@@ -334,6 +338,10 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.frequency 0
+filterByRange.frequency on
+filterLimits.frequency 0:100
+filterLabel.frequency Modification frequency (%)
 priority 3
 
 track rRNA_consensus
