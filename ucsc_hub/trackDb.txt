@@ -22,6 +22,8 @@ filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
+filterValues.name Am|Cm|Gm|Um|Y|m6A
+filterLabel.name Modification type
 priority 2
 
 track rRNA_filtered
@@ -37,6 +39,8 @@ filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
+filterValues.name Am|Cm|Gm|Um|Y|m6A
+filterLabel.name Modification type
 priority 3
 
 track rRNA_consensus

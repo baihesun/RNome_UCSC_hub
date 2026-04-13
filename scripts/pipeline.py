@@ -294,11 +294,32 @@ defaultPos hs_rRNA_18S:1-1869
 orderKey 1
 scientificName Homo sapiens
 htmlPath hubDescription.html
+
+genome hg38
+trackDb trackDb_hg38.txt
 """)
     print(f"    Written {path}")
 
 
-def write_trackdb_txt(out_dir, bigbed_names):
+def get_mod_types(bed_paths):
+    """
+    Scan one or more fixed BED files and return a sorted, pipe-delimited string
+    of unique modification type values (column 4) for use in filterValues.name.
+    """
+    mod_types = set()
+    for path in bed_paths:
+        with open(path) as fh:
+            for line in fh:
+                line = line.rstrip("\r\n")
+                if not line or line.startswith("#"):
+                    continue
+                cols = line.split("\t")
+                if len(cols) >= 4:
+                    mod_types.add(cols[3].strip())
+    return "|".join(sorted(mod_types))
+
+
+def write_trackdb_txt(out_dir, bigbed_names, mod_type_values):
     path = os.path.join(out_dir, "trackDb.txt")
     ref_bb, sample_bb, filtered_bb, consensus_bb = bigbed_names
     with open(path, "w") as f:
@@ -327,6 +348,8 @@ filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
+filterValues.name {mod_type_values}
+filterLabel.name Modification type
 priority 2
 
 track rRNA_filtered
@@ -342,6 +365,8 @@ filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
+filterValues.name {mod_type_values}
+filterLabel.name Modification type
 priority 3
 
 track rRNA_consensus
@@ -435,6 +460,8 @@ def main():
         run_bedtobigbed(fixed_path, fai_path, bigbed_path, as_path)
 
     print("\n── Step 5: Write hub config files ──────────────────────────────────────")
+    mod_type_values = get_mod_types([fixed_beds["sample"], fixed_beds["filtered"]])
+    print(f"    Modification types found: {mod_type_values}")
     write_hub_txt(OUTPUT_DIR)
     write_genomes_txt(OUTPUT_DIR)
     write_trackdb_txt(OUTPUT_DIR, [
@@ -442,7 +469,7 @@ def main():
         bigbed_names["sample"],
         bigbed_names["filtered"],
         bigbed_names["consensus"],
-    ])
+    ], mod_type_values)
     write_description_html(OUTPUT_DIR)
 
     print(f"""
