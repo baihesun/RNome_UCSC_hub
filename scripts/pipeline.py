@@ -54,44 +54,39 @@ FASTA_FAI = "hs_rRNAs_NR_046235.fa.fai"
 CONSENSUS_KEYS = ["sample", "filtered"]
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Base hues (0-1) per modification type
-# Hue encodes chemical class; saturation encodes frequency
-MOD_HUES = {
-    # 2'-O-methylation — blue family
-    "Am":  0.61,
-    "Cm":  0.58,
-    "Gm":  0.55,
-    "Um":  0.52,
-    "Ym":  0.64,
-    # N6/N1-methyladenosine — red/orange family
-    "m6A":  0.0,
-    "m66A": 0.97,
-    "m1A":  0.08,
-    # Pseudouridine — teal
-    "Y":       0.47,
-    "m1acp3Y": 0.44,
-    # Cytosine modifications — green
-    "m5C":  0.33,
-    "ac4C": 0.28,
-    # Guanosine modifications — purple
-    "m7G":  0.78,
-    # Uridine modifications — amber
-    "m3U":  0.13,
+# Fixed color per modification type (hex)
+COLOR_CODE = {
+    "m6A":     "#003f5c",
+    "Am":      "#1464a0",
+    "Ino":     "#0e8fd4",
+    "m1A":     "#00b4d8",
+    "m66A":    "#00d4b4",
+    "m1acp3Y": "#00c875",
+    "Y":       "#90be6d",
+    "Ym":      "#c9b84c",
+    "Um":      "#ffa600",
+    "m3U":     "#ff7c43",
+    "Gm":      "#ff6361",
+    "m7G":     "#dd7371",
+    "Cm":      "#ef476f",
+    "m5C":     "#d45087",
+    "ac4C":    "#7b2d8b",
 }
-DEFAULT_HUE = 0.0  # gray fallback for unknown mod types
+DEFAULT_COLOR = "#808080"  # gray fallback for unknown mod types
 
 
-def frequency_to_rgb(mod_type, frequency):
+def mod_to_rgb(mod_type, frequency):
     """
-    Convert a mod type + frequency value to an RGB string for UCSC.
-    Hue        = modification type (chemical class)
-    Saturation = frequency (0% = gray, 100% = fully vivid)
-    Value      = fixed at 0.85
+    Convert a mod type + frequency to an RGB string for UCSC.
+    Base color = COLOR_CODE hex (hue + full saturation).
+    Saturation is scaled by frequency (0% → gray, 100% → full color).
     """
-    hue = MOD_HUES.get(mod_type.strip(), DEFAULT_HUE)
-    freq = max(0.0, min(100.0, float(frequency)))
-    r, g, b = colorsys.hsv_to_rgb(hue, freq / 100.0, 0.85)
-    return f"{int(r*255)},{int(g*255)},{int(b*255)}"
+    hex_color = COLOR_CODE.get(mod_type.strip(), DEFAULT_COLOR).lstrip("#")
+    r, g, b = int(hex_color[0:2], 16) / 255, int(hex_color[2:4], 16) / 255, int(hex_color[4:6], 16) / 255
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    s_scaled = s * max(0.0, min(100.0, float(frequency))) / 100.0
+    r2, g2, b2 = colorsys.hsv_to_rgb(h, s_scaled, v)
+    return f"{int(r2*255)},{int(g2*255)},{int(b2*255)}"
 
 
 def consensus_rgb(count, total):
@@ -187,7 +182,7 @@ def process_bed(input_path, output_path):
             frequency = float(cols[10]) if len(cols) >= 11 else 100.0
 
             # Recolor col 9
-            cols[8] = frequency_to_rgb(mod_type, frequency)
+            cols[8] = mod_to_rgb(mod_type, frequency)
 
             # Record original score for rescaling
             try:
