@@ -316,7 +316,7 @@ def get_mod_types(bed_paths):
                 cols = line.split("\t")
                 if len(cols) >= 4:
                     mod_types.add(cols[3].strip())
-    return "|".join(sorted(mod_types))
+    return ",".join(sorted(mod_types))
 
 
 def write_trackdb_txt(out_dir, bigbed_names, mod_type_values):
