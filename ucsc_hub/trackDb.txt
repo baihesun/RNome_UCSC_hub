@@ -23,7 +23,7 @@ filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
-filterValues.name Am,Cm,Gm,Ino,Um,Y,Ym,ac4C,m1A,m1acp3Y,m3U,m5C,m66A,m6A,m7G
+filterValues.name 7,?,B,Ino,J,M,P,Z,m66A,ʍ,α,δ,Ж,Ѣ,＃
 filterLabel.name Modification type
 html rRNA_sample_MRI01
 priority 2
@@ -41,7 +41,7 @@ filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
-filterValues.name Am,Cm,Gm,Ino,Um,Y,Ym,ac4C,m1A,m1acp3Y,m3U,m5C,m66A,m6A,m7G
+filterValues.name 7,?,B,Ino,J,M,P,Z,m66A,ʍ,α,δ,Ж,Ѣ,＃
 filterLabel.name Modification type
 html rRNA_filtered
 priority 3

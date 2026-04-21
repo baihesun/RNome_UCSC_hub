@@ -36,6 +36,7 @@ After running:
            Paste: https://baihesun.github.io/rRNA_dataviz/ucsc_hub/hub.txt
 """
 
+import csv
 import os
 import random
 import colorsys
@@ -60,8 +61,9 @@ INPUT_FILES = {
     "sample":   "rRNA_mature_bedRmod_Detection_EM_mean2_Log10_1.8_modOnly_Sample_MRI01.bed",
     "filtered": "rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods_no_m5C.bed",
 }
-FASTA_FAI  = "hs_rRNAs_NR_046235.fa.fai"
-FASTA_FILE = "hs_rRNAs_NR_046235.fa"
+FASTA_FAI        = "hs_rRNAs_NR_046235.fa.fai"
+FASTA_FILE       = "hs_rRNAs_NR_046235.fa"
+MOD_NAME_MAP_CSV = "data/natural_modifications.csv"
 
 # Keys from INPUT_FILES to merge into the consensus track
 CONSENSUS_KEYS = ["sample", "filtered"]
@@ -86,6 +88,21 @@ COLOR_CODE = {
     "ac4C":    "#7b2d8b",
 }
 DEFAULT_COLOR = "#808080"  # gray fallback for unknown mod types
+
+
+def load_mod_name_map(csv_path):
+    """
+    Read natural_modifications.csv and return {short_name: new_abbrev}.
+    Rows where new_abbrev is empty are skipped.
+    """
+    mapping = {}
+    with open(csv_path, newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            short = row.get("short name", "").strip()
+            new   = row.get("new abbrev", "").strip()
+            if short and new:
+                mapping[short] = new
+    return mapping
 
 
 def mod_to_rgb(mod_type, frequency):
@@ -171,10 +188,11 @@ def make_consensus_bed(fixed_bed_paths, output_path):
         print(f"    {tally[k]} sites observed in {k}/{total} samples")
 
 
-def process_bed(input_path, output_path):
+def process_bed(input_path, output_path, mod_name_map=None):
     """
     Read a bedRmod file and write a cleaned version:
-      - Recolor column 9 (itemRgb): hue = mod type, saturation = frequency
+      - Translate col 4 (name) from short name to new abbrev via mod_name_map
+      - Recolor column 9 (itemRgb): fixed color per mod type, saturation = frequency
       - Rescale score (col 5) to 0-1000 integer range (required by bedToBigBed)
       - Keep all 11 columns (coverage and frequency retained as extra fields)
       - Sort by chrom then start position
@@ -192,6 +210,9 @@ def process_bed(input_path, output_path):
                 continue
 
             mod_type  = cols[3].strip()
+            if mod_name_map:
+                mod_type = mod_name_map.get(mod_type, mod_type)
+                cols[3] = mod_type
             frequency = float(cols[10]) if len(cols) >= 11 else 100.0
 
             # Recolor col 9
@@ -548,6 +569,12 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(SUPP_DIR, exist_ok=True)
 
+    # Load short-name → new-abbrev mapping and retranslate COLOR_CODE keys
+    global COLOR_CODE
+    mod_name_map = load_mod_name_map(MOD_NAME_MAP_CSV)
+    COLOR_CODE   = {mod_name_map.get(k, k): v for k, v in COLOR_CODE.items()}
+    print(f"\n  Loaded {len(mod_name_map)} name mappings from {MOD_NAME_MAP_CSV}")
+
     fai_path = os.path.join(input_dir, FASTA_FAI)
 
     print("\n── Step 1 & 2: Recolor and fix BED files ───────────────────────────────")
@@ -562,7 +589,7 @@ def main():
         bigbed_name = base + suffix + ".bigBed"
 
         print(f"\n  {key}:")
-        process_bed(input_path, fixed_path)
+        process_bed(input_path, fixed_path, mod_name_map)
         fixed_beds[key]   = fixed_path
         bigbed_names[key] = bigbed_name
 
