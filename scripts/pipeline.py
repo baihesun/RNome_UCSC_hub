@@ -557,8 +557,9 @@ def main():
     for key, fname in INPUT_FILES.items():
         input_path  = os.path.join(input_dir, fname)
         base        = os.path.splitext(fname)[0]
-        fixed_path  = os.path.join(SUPP_DIR, base + ".fixed.bed")
-        bigbed_name = base + ".bigBed"
+        suffix      = ".demo" if input_dir == DEMO_DIR else ""
+        fixed_path  = os.path.join(SUPP_DIR, base + suffix + ".fixed.bed")
+        bigbed_name = base + suffix + ".bigBed"
 
         print(f"\n  {key}:")
         process_bed(input_path, fixed_path)
@@ -566,8 +567,9 @@ def main():
         bigbed_names[key] = bigbed_name
 
     print("\n── Step 2b: Build consensus track ──────────────────────────────────────")
-    consensus_fixed   = os.path.join(SUPP_DIR, "consensus.fixed.bed")
-    consensus_bb_name = "consensus.bigBed"
+    suffix            = ".demo" if input_dir == DEMO_DIR else ""
+    consensus_fixed   = os.path.join(SUPP_DIR, "consensus" + suffix + ".fixed.bed")
+    consensus_bb_name = "consensus" + suffix + ".bigBed"
     print(f"\n  consensus ({' + '.join(CONSENSUS_KEYS)}):")
     make_consensus_bed(
         [fixed_beds[k] for k in CONSENSUS_KEYS],
