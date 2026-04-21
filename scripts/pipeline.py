@@ -4,41 +4,53 @@ pipeline.py
 End-to-end pipeline to generate a UCSC assembly hub from rRNA bedRmod files.
 
 Steps:
-    1. Recolor BED files — hue encodes modification type, saturation encodes frequency
+    1. Recolor BED files — fixed hex color per mod type, saturation encodes frequency
     2. Fix BED files — keep all 11 columns, rescale scores to 0-1000, sort by chrom/position
     3. Write AutoSql (.as) file describing all 11 columns
     4. Convert to bigBed format using UCSC's bedToBigBed with -type=bed9+2 -as=rRNA_mods.as
     5. Generate hub config files — hub.txt, genomes.txt, trackDb.txt
 
+DATA_MODE:
+    "real"  — use data/real/ (gitignored, contains actual experimental data)
+    "demo"  — use data/demo/ (committed, contains scrambled placeholder data)
+              Run with --scramble first to generate demo data from the real FAI.
+
 Usage:
-    python pipeline.py
+    python scripts/pipeline.py                  # run with current DATA_MODE
+    python scripts/pipeline.py --scramble       # generate demo data then run in demo mode
 
 Requirements:
-    - bedToBigBed in same directory or on PATH
+    - bedToBigBed and faToTwoBit in supplementary/ or on PATH
       Download: https://hgdownload.soe.ucsc.edu/admin/exe/macOSX.arm64/bedToBigBed
-    - faToTwoBit in same directory or on PATH
-      Download: https://hgdownload.soe.ucsc.edu/admin/exe/macOSX.arm64/faToTwoBit
+               https://hgdownload.soe.ucsc.edu/admin/exe/macOSX.arm64/faToTwoBit
 
 After running:
     1. Convert FASTA to .2bit:
-           ./faToTwoBit Test_visualization_data_rRNA/hs_rRNAs_NR_046235.fa ucsc_hub/hs_rRNAs_NR_046235.2bit
-    2. Push the entire repo to GitHub (run from repo root):
-           cd /Users/baihesun/Downloads/rRNA_dataviz_repo
+           supplementary/faToTwoBit data/real/hs_rRNAs_NR_046235.fa ucsc_hub/hs_rRNAs_NR_046235.2bit
+       (use data/demo/hs_rRNAs_NR_046235.fa when in demo mode)
+    2. Push to GitHub:
            git add .
-           git commit -m "color match with custom web"
+           git commit -m "Update hub files"
            git push -u origin main
     3. In UCSC: My Data > Track Hubs > My Hubs
            Paste: https://baihesun.github.io/rRNA_dataviz/ucsc_hub/hub.txt
 """
 
 import os
+import random
 import colorsys
 import subprocess
 import sys
 from collections import defaultdict
 
-# ── Edit these paths ──────────────────────────────────────────────────────────
-INPUT_DIR   = "Test_visualization_data_rRNA"
+# ── Configuration ─────────────────────────────────────────────────────────────
+# Set DATA_MODE to "real" to use actual data (gitignored),
+# or "demo" to use scrambled placeholder data (committed to GitHub).
+DATA_MODE   = "real"
+
+REAL_DIR    = "data/real"
+DEMO_DIR    = "data/demo"
+SUPP_DIR    = "supplementary"   # intermediate files + binary tools (gitignored)
 OUTPUT_DIR  = "ucsc_hub"
 GITHUB_USER = "baihesun"
 GITHUB_REPO = "rRNA_dataviz"
@@ -46,9 +58,10 @@ GITHUB_REPO = "rRNA_dataviz"
 INPUT_FILES = {
     "ref":      "H.sapiens_ref_bedRmod_All.bed",
     "sample":   "rRNA_mature_bedRmod_Detection_EM_mean2_Log10_1.8_modOnly_Sample_MRI01.bed",
-    "filtered": "rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods _no_m5C.bed",
+    "filtered": "rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods_no_m5C.bed",
 }
-FASTA_FAI = "hs_rRNAs_NR_046235.fa.fai"
+FASTA_FAI  = "hs_rRNAs_NR_046235.fa.fai"
+FASTA_FILE = "hs_rRNAs_NR_046235.fa"
 
 # Keys from INPUT_FILES to merge into the consensus track
 CONSENSUS_KEYS = ["sample", "filtered"]
@@ -245,12 +258,71 @@ float   frequency;   "Percentage of reads showing the modification (0-100)"
     return path
 
 
+def _find_tool(name):
+    """Return path to a UCSC binary, checking supplementary/ before PATH."""
+    supp = os.path.join(SUPP_DIR, name)
+    return supp if os.path.exists(supp) else name
+
+
+def scramble_data(dest_dir, sites_per_chrom=80):
+    """
+    Generate structurally valid but fully randomised BED + FASTA files in
+    dest_dir using chromosome names/lengths from data/real/FASTA_FAI.
+    No real positions, scores, or frequencies are preserved.
+    """
+    os.makedirs(dest_dir, exist_ok=True)
+    fai_src = os.path.join(REAL_DIR, FASTA_FAI)
+    if not os.path.exists(fai_src):
+        print(f"  ERROR: {fai_src} not found — cannot scramble without the real FAI.")
+        sys.exit(1)
+
+    # Parse chromosome names and lengths from the real FAI
+    chroms = []
+    with open(fai_src) as fh:
+        for line in fh:
+            parts = line.split("\t")
+            chroms.append((parts[0], int(parts[1])))
+
+    mod_types = list(COLOR_CODE.keys())
+
+    # Write a fake FASTA + copy FAI (names/lengths only, no real sequence)
+    fa_out  = os.path.join(dest_dir, FASTA_FILE)
+    fai_out = os.path.join(dest_dir, FASTA_FAI)
+    with open(fa_out, "w") as fa:
+        for chrom, length in chroms:
+            fa.write(f">{chrom}\n")
+            seq = "".join(random.choices("ACGT", k=length))
+            for i in range(0, length, 60):
+                fa.write(seq[i:i+60] + "\n")
+    import shutil
+    shutil.copy(fai_src, fai_out)
+
+    # Write one scrambled BED per INPUT_FILE
+    for _, fname in INPUT_FILES.items():
+        out_path = os.path.join(dest_dir, fname)
+        rows = []
+        for chrom, length in chroms:
+            positions = sorted(random.sample(range(length - 1), min(sites_per_chrom, length - 1)))
+            for pos in positions:
+                mod   = random.choice(mod_types)
+                score = round(random.uniform(0, 10), 4)
+                freq  = round(random.uniform(5, 100), 2)
+                cov   = random.randint(10, 500)
+                rows.append([chrom, str(pos), str(pos + 1), mod, str(score),
+                              "+", str(pos), str(pos + 1), "0,0,0",
+                              str(cov), str(freq)])
+        with open(out_path, "w") as fh:
+            for r in rows:
+                fh.write("\t".join(r) + "\n")
+        print(f"    Scrambled {len(rows)} sites -> {out_path}")
+
+    print(f"  Demo data written to {dest_dir}/")
+
+
 def run_bedtobigbed(bed_path, fai_path, bigbed_path, as_path):
     """Convert a fixed BED file to bigBed using UCSC's bedToBigBed.
     Uses -type=bed9+2 and -as= to retain coverage and frequency as named extra fields."""
-    cmd = "bedToBigBed"
-    if os.path.exists("./bedToBigBed"):
-        cmd = "./bedToBigBed"
+    cmd = _find_tool("bedToBigBed")
 
     result = subprocess.run(
         [cmd, f"-as={as_path}", "-type=bed9+2", bed_path, fai_path, bigbed_path],
@@ -464,17 +536,28 @@ Colors use a sequential red scale based on how often the modification is observe
 
 
 def main():
+    if "--scramble" in sys.argv:
+        print("\n── Generating scrambled demo data ───────────────────────────────────────")
+        scramble_data(DEMO_DIR)
+        input_dir = DEMO_DIR
+    else:
+        input_dir = REAL_DIR if DATA_MODE == "real" else DEMO_DIR
+
+    print(f"\n  Using input data from: {input_dir}  (DATA_MODE={DATA_MODE})")
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    fai_path = os.path.join(INPUT_DIR, FASTA_FAI)
+    os.makedirs(SUPP_DIR, exist_ok=True)
+
+    fai_path = os.path.join(input_dir, FASTA_FAI)
 
     print("\n── Step 1 & 2: Recolor and fix BED files ───────────────────────────────")
     fixed_beds   = {}
     bigbed_names = {}
 
     for key, fname in INPUT_FILES.items():
-        input_path  = os.path.join(INPUT_DIR, fname)
+        input_path  = os.path.join(input_dir, fname)
         base        = os.path.splitext(fname)[0]
-        fixed_path  = os.path.join(OUTPUT_DIR, base + ".fixed.bed")
+        fixed_path  = os.path.join(SUPP_DIR, base + ".fixed.bed")
         bigbed_name = base + ".bigBed"
 
         print(f"\n  {key}:")
@@ -483,7 +566,7 @@ def main():
         bigbed_names[key] = bigbed_name
 
     print("\n── Step 2b: Build consensus track ──────────────────────────────────────")
-    consensus_fixed  = os.path.join(OUTPUT_DIR, "consensus.fixed.bed")
+    consensus_fixed   = os.path.join(SUPP_DIR, "consensus.fixed.bed")
     consensus_bb_name = "consensus.bigBed"
     print(f"\n  consensus ({' + '.join(CONSENSUS_KEYS)}):")
     make_consensus_bed(
@@ -516,16 +599,16 @@ def main():
     write_track_html(OUTPUT_DIR)
     write_description_html(OUTPUT_DIR)
 
+    fasta_src = os.path.join(input_dir, FASTA_FILE)
     print(f"""
 ── Done ─────────────────────────────────────────────────────────────────────
 
 Next steps:
 
   1. Convert FASTA to .2bit (if not done already):
-         ./faToTwoBit {os.path.join(INPUT_DIR, "hs_rRNAs_NR_046235.fa")} {OUTPUT_DIR}/hs_rRNAs_NR_046235.2bit
+         {SUPP_DIR}/faToTwoBit {fasta_src} {OUTPUT_DIR}/hs_rRNAs_NR_046235.2bit
 
-  2. Push the entire repo to GitHub (run from repo root, not from {OUTPUT_DIR}/):
-         cd /Users/{GITHUB_USER}/Downloads/rRNA_dataviz_repo
+  2. Push to GitHub:
          git add .
          git commit -m "Update hub files"
          git push -u origin main

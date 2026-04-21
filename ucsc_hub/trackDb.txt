@@ -23,13 +23,13 @@ filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
-filterValues.name Am,Cm,Gm,Um,Y,m6A
+filterValues.name Am,Cm,Gm,Ino,Um,Y,Ym,ac4C,m1A,m1acp3Y,m3U,m5C,m66A,m6A,m7G
 filterLabel.name Modification type
 html rRNA_sample_MRI01
 priority 2
 
 track rRNA_filtered
-bigDataUrl rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods _no_m5C.bigBed
+bigDataUrl rRNA_mature_Filtered_MOD_10_MULT_1000_bedRmod_0.99_Allmods_no_m5C.bigBed
 shortLabel Filtered mods
 longLabel Filtered modifications
 type bigBed 9 +
@@ -41,7 +41,7 @@ filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
-filterValues.name Am,Cm,Gm,Um,Y,m6A
+filterValues.name Am,Cm,Gm,Ino,Um,Y,Ym,ac4C,m1A,m1acp3Y,m3U,m5C,m66A,m6A,m7G
 filterLabel.name Modification type
 html rRNA_filtered
 priority 3
