@@ -1,0 +1,291 @@
+track illumina_super
+superTrack on show
+shortLabel Illumina
+longLabel Illumina — Consensus and Supporting Experiments
+priority 1
+
+track illumina_consensus
+parent illumina_super
+bigDataUrl illumina_consensus.bigBed
+shortLabel Illumina consensus
+longLabel Illumina
+type bigBed 9 +
+itemRgb on
+visibility pack
+scoreMin 0
+scoreMax 1000
+filter.frequency 0
+filterByRange.frequency on
+filterLimits.frequency 0:100
+filterLabel.frequency Modification frequency (%)
+filterValues.name 7,?,B,J,P,ʍ,Ж,＃
+filterLabel.name Modification type
+html rrna/illumina_consensus
+priority 1
+
+track illumina_experiments_composite
+compositeTrack on
+parent illumina_super
+shortLabel Illumina experiments
+longLabel Individual Illumina Experiment Tracks
+type bigBed 9 +
+itemRgb on
+visibility hide
+subGroup1 sample Sample ill01=ILL01 ill02=ILL02 ill03=ILL03
+dimensions dimX=sample
+filterComposite on
+html rrna/illumina_experiments_composite
+priority 2
+
+    track illumina_exp_ILL01
+    parent illumina_experiments_composite
+    bigDataUrl experiments/illumina_ILL01.bigBed
+    subGroups sample=ill01
+    shortLabel ILL01
+    longLabel Illumina ILL01 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name 7,?,B,J,P,ʍ,Ж,＃
+    filterLabel.name Modification type
+    html rrna/illumina_experiments_composite
+    priority 1
+
+    track illumina_exp_ILL02
+    parent illumina_experiments_composite
+    bigDataUrl experiments/illumina_ILL02.bigBed
+    subGroups sample=ill02
+    shortLabel ILL02
+    longLabel Illumina ILL02 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name 7,?,B,J,P,ʍ,Ж,＃
+    filterLabel.name Modification type
+    html rrna/illumina_experiments_composite
+    priority 2
+
+    track illumina_exp_ILL03
+    parent illumina_experiments_composite
+    bigDataUrl experiments/illumina_ILL03.bigBed
+    subGroups sample=ill03
+    shortLabel ILL03
+    longLabel Illumina ILL03 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name 7,?,B,J,P,ʍ,Ж,＃
+    filterLabel.name Modification type
+    html rrna/illumina_experiments_composite
+    priority 3
+
+
+track massspec_super
+superTrack on show
+shortLabel Mass Spec
+longLabel Mass Spec — Consensus and Supporting Experiments
+priority 2
+
+track massspec_consensus
+parent massspec_super
+bigDataUrl massspec_consensus.bigBed
+shortLabel Mass Spec consensus
+longLabel Mass Spectrometry
+type bigBed 9 +
+itemRgb on
+visibility pack
+scoreMin 0
+scoreMax 1000
+filter.frequency 0
+filterByRange.frequency on
+filterLimits.frequency 0:100
+filterLabel.frequency Modification frequency (%)
+filterValues.name I,mA?,mC?,mG?,mU?,∠
+filterLabel.name Modification type
+html rrna/massspec_consensus
+priority 1
+
+track massspec_experiments_composite
+compositeTrack on
+parent massspec_super
+shortLabel Mass Spec experiments
+longLabel Individual Mass Spec Experiment Tracks
+type bigBed 9 +
+itemRgb on
+visibility hide
+subGroup1 sample Sample ms01=MS01 ms02=MS02 ms03=MS03
+dimensions dimX=sample
+filterComposite on
+html rrna/massspec_experiments_composite
+priority 2
+
+    track massspec_exp_MS01
+    parent massspec_experiments_composite
+    bigDataUrl experiments/massspec_MS01.bigBed
+    subGroups sample=ms01
+    shortLabel MS01
+    longLabel Mass Spec MS01 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name I,mA?,mC?,mG?,mU?,∠
+    filterLabel.name Modification type
+    html rrna/massspec_experiments_composite
+    priority 1
+
+    track massspec_exp_MS02
+    parent massspec_experiments_composite
+    bigDataUrl experiments/massspec_MS02.bigBed
+    subGroups sample=ms02
+    shortLabel MS02
+    longLabel Mass Spec MS02 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name I,mA?,mC?,mG?,mU?,∠
+    filterLabel.name Modification type
+    html rrna/massspec_experiments_composite
+    priority 2
+
+    track massspec_exp_MS03
+    parent massspec_experiments_composite
+    bigDataUrl experiments/massspec_MS03.bigBed
+    subGroups sample=ms03
+    shortLabel MS03
+    longLabel Mass Spec MS03 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name I,mA?,mC?,mG?,mU?,∠
+    filterLabel.name Modification type
+    html rrna/massspec_experiments_composite
+    priority 3
+
+
+track ont_super
+superTrack on show
+shortLabel ONT
+longLabel ONT — Consensus and Supporting Experiments
+priority 3
+
+track ont_consensus
+parent ont_super
+bigDataUrl ont_consensus.bigBed
+shortLabel ONT consensus
+longLabel Oxford Nanopore
+type bigBed 9 +
+itemRgb on
+visibility pack
+scoreMin 0
+scoreMax 1000
+filter.frequency 0
+filterByRange.frequency on
+filterLimits.frequency 0:100
+filterLabel.frequency Modification frequency (%)
+filterValues.name ?,B,J,P,ʍ,Ж,＃
+filterLabel.name Modification type
+html rrna/ont_consensus
+priority 1
+
+track ont_experiments_composite
+compositeTrack on
+parent ont_super
+shortLabel ONT experiments
+longLabel Individual ONT Experiment Tracks
+type bigBed 9 +
+itemRgb on
+visibility hide
+subGroup1 sample Sample ont01=ONT01 ont02=ONT02 ont03=ONT03
+dimensions dimX=sample
+filterComposite on
+html rrna/ont_experiments_composite
+priority 2
+
+    track ont_exp_ONT01
+    parent ont_experiments_composite
+    bigDataUrl experiments/ont_ONT01.bigBed
+    subGroups sample=ont01
+    shortLabel ONT01
+    longLabel ONT ONT01 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name ?,B,J,P,ʍ,Ж,＃
+    filterLabel.name Modification type
+    html rrna/ont_experiments_composite
+    priority 1
+
+    track ont_exp_ONT02
+    parent ont_experiments_composite
+    bigDataUrl experiments/ont_ONT02.bigBed
+    subGroups sample=ont02
+    shortLabel ONT02
+    longLabel ONT ONT02 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name ?,B,J,P,ʍ,Ж,＃
+    filterLabel.name Modification type
+    html rrna/ont_experiments_composite
+    priority 2
+
+    track ont_exp_ONT03
+    parent ont_experiments_composite
+    bigDataUrl experiments/ont_ONT03.bigBed
+    subGroups sample=ont03
+    shortLabel ONT03
+    longLabel ONT ONT03 — detected rRNA modifications
+    type bigBed 9 +
+    itemRgb on
+    scoreMin 0
+    scoreMax 1000
+    filter.frequency 0
+    filterByRange.frequency on
+    filterLimits.frequency 0:100
+    filterLabel.frequency Modification frequency (%)
+    filterValues.name ?,B,J,P,ʍ,Ж,＃
+    filterLabel.name Modification type
+    html rrna/ont_experiments_composite
+    priority 3
+
+

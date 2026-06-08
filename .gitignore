@@ -1,0 +1,4 @@
+data/real/
+supplementary/
+.DS_Store
+reference/*.gtf.gz

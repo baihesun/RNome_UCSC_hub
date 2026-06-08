@@ -1,0 +1,11 @@
+#fileformat=bedRModv2
+#modification_type=tRNA	mRNA	mRNA	mRNA	mRNA	rRNA	
+#modification_names=a:m6A:A,69426:Am:A,17596:I:A,Ino:I:A,I:I:A,A->G:I:A,17802:Y:U,Y:Y:U,A:A:A,G:G:G,C:C:C,U:U:U,T:m5U:U,m3C:m3C:C,psU:Y:U,Um:Um:U,Gm:Gm:G,Am:Am:A,Cm:Cm:C,19227:Um:U,19229:Gm:G,19228:Cm:C,m5C:m5C:C,20607:m5C:C,m6A:m6A:A,x6A:m6A:A,21891:m6A:A,xp3Cm:xp3Cm:C,m2xp7G:m2xp7G:G,m6G:m6G:G,xp4U:xp4U:U,ac7G:ac7G:G,89487:m3U:U,m3U:m3U:U,m5U:m5U:U,m4C:m4C:C,28284:m6,6A:A,xp6G:xp6G:G,xp7G:xp7G:G,m7A:m7A:A,m1acp3Y:m1acp3Y:U,m1ap3U:m1acp3Y:U,70989:ac4C:C,ac4C:ac4C:C,20794:m7G:G,m7G:m7G:G,m66A:m6,6A:A,Ym:Ym:U,16020:m1A:A,m1A:m1A:A,m1A :m1A:A,m:m5C:C,143283:m2,2,7G:G,G->T::G,T->C::U,G->A::G,C->A::C,C->T::C,A->C::A,G->C::G,T->G::U,T->A::U,C->G::C,A->T::A,mA?:mA?:A,mC?:mC?:C,mG?:mG?:G,mU?:mU?:U,16335:A:A,16750:G:G,17562:C:C,16704:U:U,m5Cm:m5Cm:C,184012:m5Cm:C,hm5Cm:hm5Cm:C,99997:hm5Cm:C,f5Cm:f5Cm:C,99996:f5Cm:C,m1I:m1I:A,19065:m1I:A,Psi:Y:U,m6,6A:m6,6A:A,m1G:m1G:G,19062:m1G:G,m2G:m2G:G,19702:m2G:G,m2,2G:m2,2G:G,m22G:m2,2G:G,19289:m2,2G:G,m2,2,7G:m2,2,7G:G,45996:m5U:U,D:D:U,23774:D:U,t6A:t6A:A,21440:t6A:A,m6t6A:m6t6A:A,133071:m6t6A:A,cm5U:cm5U:U,75654:cm5U:U,mcm5U:mcm5U:U,20598:mcm5U:U,mcmo5U:mcmo5U:U,27241:mcmo5U:U,mchm5U:mchm5U:U,99998:mchm5U:U,0:mchm5U:U,ncm5U:ncm5U:U,62005:ncm5U:U,ncm5Um:ncm5Um:U,99994:ncm5Um:U,ncm5s2U:ncm5s2U:U,99995:ncm5s2U:U,hm5C:hm5C:C,191041:hm5C:C,f5C:f5C:C,234279:f5C:C,i6A:i6A:A,62881:i6A:A,ms2i6A:ms2i6A:A,62875:ms2i6A:A,io6A:io6A:A,71693:io6A:A,ms2io6A:ms2io6A:A,62879:ms2io6A:A,acp3U:acp3U:U,acp3D:acp3D:U,71588:acp3D:U,Q:Q:G,60193:Q:G,s2U:s2U:U,60731:s2U:U,99990:mA?:A,99991:mC?:C,99992:mG?:G,99993:mU?:U,U*:U*:U
+#sequencing_plattform=ONT
+#assembly=tRNA:tRNA_ref;mRNA:GRCh38;mRNA:;mRNA:;mRNA:;rRNA:;
+#annotation_source=tRNA:gtRNAdb;mRNA:GENCODE;mRNA:;mRNA:;mRNA:;rRNA:;
+#basecalling=tRNA:;mRNA:;mRNA:;mRNA:;mRNA:;rRNA:;
+#bioinformatics_workflow=tRNA:;mRNA:REDItools3-JACUSA2;mRNA:;mRNA:;mRNA:;rRNA:;
+#experiment=tRNA:[];mRNA:[RNAseq_total-RNA];mRNA:[];mRNA:[];mRNA:[];rRNA:[];
+#external_source=tRNA:;mRNA:;mRNA:;mRNA:;mRNA:;rRNA:;
+#chrom	chromStart	chromEnd	name	score	strand	thickStart	thickEnd	itemRgb	coverage	frequency	single_letter_code	mod_id	
