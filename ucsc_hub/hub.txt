@@ -1,6 +1,6 @@
 hub RNome
-shortLabel RNome Modifications 
-longLabel Human RNome RNA Modification 
+shortLabel RNome Modifications v2
+longLabel Human RNome RNA Modification Atlas (v2)
 genomesFile genomes.txt
 email baihe_sun@mail.dfci.harvard.edu
 descriptionUrl hubDescription.html

@@ -1,4 +1,4 @@
-table rna_mods_v2
+table rna_mods
 "RNA modification sites"
 (
 string  chrom;              "Chromosome or RNA name"
