@@ -40,7 +40,7 @@ RNome_dataviz_repo/
 │       └── experiments_{illumina,ms}/
 │
 ├── scripts/
-│   ├── pipeline_v2.py                      # End-to-end hub generation (see below)
+│   ├── pipeline.py                      # End-to-end hub generation (see below)
 │   └── BedPyLift.py                        # Transcriptome → genome coordinate lifting
 │
 ├── ucsc_hub/                                # Generated UCSC assembly hub
@@ -91,14 +91,14 @@ transcriptomic position to `(chrom, genomic_pos, strand)`, merges duplicate
 genomic sites using a coverage-weighted average frequency, and logs mapping
 statistics (conversion rate, unmappable transcripts, duplicate sites).
 
-### 2. Run the main pipeline (`pipeline_v2.py`)
+### 2. Run the main pipeline (`pipeline.py`)
 
 Update `SOURCE_DIR`, `COMBINED_FILES`, and `EXPERIMENT_FILES` at the top of
-`scripts/pipeline_v2.py` to point at your source bedRmod files, then from the
+`scripts/pipeline.py` to point at your source bedRmod files, then from the
 repo root:
 
 ```bash
-python scripts/pipeline_v2.py
+python scripts/pipeline.py
 ```
 
 This will:
@@ -110,7 +110,7 @@ This will:
 3. Normalize each BED file for `bedToBigBed`: clamp scores to 0–1000, recolor
    by modification type (hue) × frequency (saturation), remap Ensembl
    scaffold names to UCSC names where needed, and convert to bigBed
-   (`bedToBigBed -type=bed9+4 -as=rna_mods_v2.as`)
+   (`bedToBigBed -type=bed9+4 -as=rna_mods.as`)
 4. Generate the UCSC hub config (`hub.txt`, `genomes.txt`, per-assembly
    `trackDb.txt`) with consensus tracks, per-experiment composite subtracks,
    and frequency / modification-type filters
@@ -168,7 +168,7 @@ from `https://storage.googleapis.com/srs000090-wgs/`.
 
 ---
 
-## BED columns (bed9+4, `rna_mods_v2.as`)
+## BED columns (bed9+4, `rna_mods.as`)
 
 | Column | Field | Description |
 |---|---|---|
