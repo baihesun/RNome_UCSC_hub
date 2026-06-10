@@ -5,7 +5,7 @@ Steps:
   1. Split combined BED files by RNA type → final_data/{RNA_type}/{RNA_type}_{Modality}.bed
   2. Copy raw experiment files → final_data/{RNA_type}/experiments_{modality}/
   3. Convert split BED files to bigBed
-  4. Generate UCSC hub v2 (ucsc_hub_v2/) with hub.txt, genomes.txt, per-assembly trackDb
+  4. Generate UCSC hub v2 (ucsc_hub/) with hub.txt, genomes.txt, per-assembly trackDb
   5. Generate per-file HTML readmes (placeholder descriptions)
   6. Generate Excel manifest
 
@@ -76,7 +76,7 @@ EXPERIMENT_FILES = {
 # ── Output paths ───────────────────────────────────────────────────────────────
 
 FINAL_DATA_DIR = "final_data"
-HUB_V2_DIR    = "ucsc_hub_v2"
+HUB_DIR    = "ucsc_hub"
 UTILS_DIR      = "utils"
 
 # ── Reference files ────────────────────────────────────────────────────────────
@@ -86,8 +86,8 @@ RRNA_2BIT   = os.path.join("ucsc_hub",  "rrna", "hs_rRNAs_NR_046235.2bit")
 HG38_SIZES  = os.path.join(UTILS_DIR,   "hg38.chrom.sizes")
 BEDTOBIGBED = os.path.join(UTILS_DIR,   "bedToBigBed")
 
-TRNA_2BIT   = os.path.join(HUB_V2_DIR, "trna", "hs_tRNA.2bit")
-TRNA_SIZES  = os.path.join(HUB_V2_DIR, "trna", "hs_tRNA.chrom.sizes")
+TRNA_2BIT   = os.path.join(HUB_DIR, "trna", "hs_tRNA.2bit")
+TRNA_SIZES  = os.path.join(HUB_DIR, "trna", "hs_tRNA.chrom.sizes")
 
 # ── Hub metadata ───────────────────────────────────────────────────────────────
 
@@ -156,7 +156,7 @@ ASSEMBLY_CFG = {
 # ── AutoSQL schema (bed9 + 4 extra fields) ─────────────────────────────────────
 
 AUTOSQL_SCHEMA = """\
-table rna_mods_v2
+table rna_mods
 "RNA modification sites"
 (
 string  chrom;              "Chromosome or RNA name"
@@ -414,7 +414,7 @@ def process_bed_for_bigbed(src_path, dst_path, chrom_remap=None, valid_chroms=No
 
 
 def write_autosql(out_dir):
-    as_path = os.path.join(out_dir, "rna_mods_v2.as")
+    as_path = os.path.join(out_dir, "rna_mods.as")
     with open(as_path, "w") as fh:
         fh.write(AUTOSQL_SCHEMA)
     return as_path
@@ -441,7 +441,7 @@ def convert_split_to_bigbed():
     print("\n── Step 3: Converting split BED → bigBed ──")
 
     # Build rRNA chrom sizes from FAI
-    rrna_sizes_path = os.path.join(HUB_V2_DIR, "rrna", "hs_rRNA.chrom.sizes")
+    rrna_sizes_path = os.path.join(HUB_DIR, "rrna", "hs_rRNA.chrom.sizes")
     if os.path.exists(RRNA_FAI):
         rrna_sizes = fai_to_sizes(RRNA_FAI)
         os.makedirs(os.path.dirname(rrna_sizes_path), exist_ok=True)
@@ -464,7 +464,7 @@ def convert_split_to_bigbed():
 
     for rna_type in RNA_TYPES:
         cfg = ASSEMBLY_CFG[rna_type]
-        hub_dir = os.path.join(HUB_V2_DIR, cfg["hub_dir"])
+        hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"])
         os.makedirs(hub_dir, exist_ok=True)
         sizes_path = sizes_for[rna_type]
 
@@ -503,7 +503,7 @@ def convert_split_to_bigbed():
 
 def _exp_bigbeds(rna_type, modality, cfg):
     """Return sorted list of (stem, filename) for experiment bigBed files."""
-    exp_dir = os.path.join(HUB_V2_DIR, cfg["hub_dir"], f"experiments_{modality.lower()}")
+    exp_dir = os.path.join(HUB_DIR, cfg["hub_dir"], f"experiments_{modality.lower()}")
     if not os.path.isdir(exp_dir):
         return []
     return sorted(
@@ -518,7 +518,7 @@ def convert_experiments_to_bigbed():
 
     hg38_remap = build_ensembl_to_ucsc_map(HG38_SIZES) if os.path.exists(HG38_SIZES) else {}
 
-    rrna_sizes_path = os.path.join(HUB_V2_DIR, "rrna", "hs_rRNA.chrom.sizes")
+    rrna_sizes_path = os.path.join(HUB_DIR, "rrna", "hs_rRNA.chrom.sizes")
     rrna_valid  = set(fai_to_sizes(RRNA_FAI).keys()) if os.path.exists(RRNA_FAI) else None
     trna_valid  = set(fai_to_sizes(TRNA_SIZES).keys()) if TRNA_SIZES and os.path.exists(TRNA_SIZES) else None
 
@@ -533,14 +533,14 @@ def convert_experiments_to_bigbed():
     for rna_type, modality_map in EXPERIMENT_FILES.items():
         cfg     = ASSEMBLY_CFG[rna_type]
         sizes   = sizes_for[rna_type]
-        as_path = os.path.join(HUB_V2_DIR, cfg["hub_dir"], "rna_mods_v2.as")
+        as_path = os.path.join(HUB_DIR, cfg["hub_dir"], "rna_mods.as")
 
         if not sizes:
             print(f"  [SKIP] {rna_type} — no chrom sizes for experiment bigBed")
             continue
 
         for modality, src_paths in modality_map.items():
-            exp_hub_dir = os.path.join(HUB_V2_DIR, cfg["hub_dir"], f"experiments_{modality.lower()}")
+            exp_hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"], f"experiments_{modality.lower()}")
             os.makedirs(exp_hub_dir, exist_ok=True)
 
             for src in src_paths:
@@ -632,7 +632,7 @@ def generate_html_readmes():
     print("\n── Step 4: Generating HTML readmes ──")
     for rna_type in RNA_TYPES:
         cfg     = ASSEMBLY_CFG[rna_type]
-        hub_dir = os.path.join(HUB_V2_DIR, cfg["hub_dir"])
+        hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"])
         os.makedirs(hub_dir, exist_ok=True)
         for modality in MODALITIES:
             filename = f"{rna_type}_{modality}.bed"
@@ -667,7 +667,7 @@ def _manifest_rows():
             filename = f"{rna_type}_{modality}.bed"
             if not os.path.exists(os.path.join(FINAL_DATA_DIR, rna_type, filename)):
                 continue
-            hub_url = f"{HUB_BASE_URL}/{HUB_V2_DIR}/{cfg['hub_dir']}/{rna_type}_{modality}.bigBed"
+            hub_url = f"{HUB_BASE_URL}/{HUB_DIR}/{cfg['hub_dir']}/{rna_type}_{modality}.bigBed"
             desc    = FILE_DESCRIPTIONS.get(filename, f"RNA modification sites — {rna_type}, {modality}.")
             yield filename, rna_type, modality, "consensus", desc, hub_url
         # Experiment rows
@@ -678,7 +678,7 @@ def _manifest_rows():
                 src_bed = os.path.join(FINAL_DATA_DIR, rna_type, f"experiments_{modality.lower()}", fname)
                 if not os.path.exists(src_bed):
                     continue
-                hub_url = (f"{HUB_BASE_URL}/{HUB_V2_DIR}/{cfg['hub_dir']}/"
+                hub_url = (f"{HUB_BASE_URL}/{HUB_DIR}/{cfg['hub_dir']}/"
                            f"experiments_{modality.lower()}/{stem}.bigBed")
                 desc    = f"Individual {modality} experiment — {rna_type} RNA modifications. (PLACEHOLDER)"
                 yield fname, rna_type, modality, "experiment", desc, hub_url
@@ -727,7 +727,7 @@ MODALITY_COLOR = {
 
 
 def write_hub_txt():
-    desc_html = os.path.join(HUB_V2_DIR, "hubDescription.html")
+    desc_html = os.path.join(HUB_DIR, "hubDescription.html")
     if not os.path.exists(desc_html):
         with open(desc_html, "w") as fh:
             fh.write("""\
@@ -746,14 +746,14 @@ def write_hub_txt():
 </html>
 """)
     content = f"""\
-hub RNome_v2
+hub RNome
 shortLabel RNome Modifications v2
 longLabel Human RNome RNA Modification Atlas (v2)
 genomesFile genomes.txt
 email baihe_sun@mail.dfci.harvard.edu
 descriptionUrl hubDescription.html
 """
-    path = os.path.join(HUB_V2_DIR, "hub.txt")
+    path = os.path.join(HUB_DIR, "hub.txt")
     with open(path, "w") as fh:
         fh.write(content)
     print(f"  hub.txt → {path}")
@@ -761,7 +761,7 @@ descriptionUrl hubDescription.html
 
 def _write_assembly_html(hub_dir, label):
     """Write a minimal assembly description HTML for custom assembly hubs."""
-    html_path = os.path.join(HUB_V2_DIR, hub_dir, "assemblyDescription.html")
+    html_path = os.path.join(HUB_DIR, hub_dir, "assemblyDescription.html")
     if not os.path.exists(html_path):
         with open(html_path, "w") as fh:
             fh.write(f"""\
@@ -824,7 +824,7 @@ def write_genomes_txt():
             )
         lines.append(block)
 
-    path = os.path.join(HUB_V2_DIR, "genomes.txt")
+    path = os.path.join(HUB_DIR, "genomes.txt")
     with open(path, "w") as fh:
         fh.write("\n".join(lines))
     print(f"  genomes.txt → {path}")
@@ -832,7 +832,7 @@ def write_genomes_txt():
 
 def _bigbed_exists(rna_type, modality, cfg):
     return os.path.exists(
-        os.path.join(HUB_V2_DIR, cfg["hub_dir"], f"{rna_type}_{modality}.bigBed")
+        os.path.join(HUB_DIR, cfg["hub_dir"], f"{rna_type}_{modality}.bigBed")
     )
 
 
@@ -857,7 +857,7 @@ _EXP_FILTER = "".join(f"\t{ln}\n" for ln in _CONSENSUS_FILTER.splitlines())
 
 def write_trackdb(rna_type):
     cfg     = ASSEMBLY_CFG[rna_type]
-    hub_dir = os.path.join(HUB_V2_DIR, cfg["hub_dir"])
+    hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"])
     os.makedirs(hub_dir, exist_ok=True)
     path    = os.path.join(hub_dir, "trackDb.txt")
 
@@ -962,7 +962,7 @@ def write_trackdb(rna_type):
             )
 
     if rna_type == "polyA-RNA_hg38":
-        vcf_html = os.path.join(HUB_V2_DIR, cfg["hub_dir"], "SRS000090_variants.html")
+        vcf_html = os.path.join(HUB_DIR, cfg["hub_dir"], "SRS000090_variants.html")
         if not os.path.exists(vcf_html):
             with open(vcf_html, "w") as fh:
                 fh.write("""\
@@ -993,13 +993,13 @@ def write_trackdb(rna_type):
 
 def generate_hub_config():
     print("\n── Step 6: Generating UCSC hub v2 config ──")
-    os.makedirs(HUB_V2_DIR, exist_ok=True)
+    os.makedirs(HUB_DIR, exist_ok=True)
     write_hub_txt()
     write_genomes_txt()
 
     for rna_type in RNA_TYPES:
         cfg = ASSEMBLY_CFG[rna_type]
-        hub_dir = os.path.join(HUB_V2_DIR, cfg["hub_dir"])
+        hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"])
         os.makedirs(hub_dir, exist_ok=True)
         write_trackdb(rna_type)
 
@@ -1029,7 +1029,7 @@ def main():
     print(f"\nNext steps:")
     print(f"  1. Update PAPER_URL with actual DOI")
     print(f"  2. Update FILE_DESCRIPTIONS with actual text")
-    print(f"  3. Push ucsc_hub_v2/ to GitHub and load hub.txt in UCSC")
+    print(f"  3. Push ucsc_hub/ to GitHub and load hub.txt in UCSC")
 
 
 if __name__ == "__main__":

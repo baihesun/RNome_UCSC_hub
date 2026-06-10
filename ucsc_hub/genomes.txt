@@ -1,12 +1,23 @@
+genome hg38
+trackDb hg38_polyA-RNA/trackDb.txt
+defaultPos chr21:8400001-8500000
+organism "Homo sapiens"
+description "Human RNA modifications (poly-A RNA, hg38)"
+
+genome hs_tRNA
+trackDb trna/trackDb.txt
+twoBitPath trna/hs_tRNA.2bit
+defaultPos hs_tRNAAla_AGC:1-76
+htmlPath trna/assemblyDescription.html
+organism "Homo sapiens tRNA"
+description "tRNA"
+scientificName "Homo sapiens"
+
 genome hs_rRNA
 trackDb rrna/trackDb.txt
-description Human rRNA sequences
 twoBitPath rrna/hs_rRNAs_NR_046235.2bit
-organism Homo sapiens
 defaultPos hs_rRNA_18S:1-1869
-orderKey 1
-scientificName Homo sapiens
-htmlPath hubDescription.html
-
-genome hg38
-trackDb hg38/trackDb_hg38.txt
+htmlPath rrna/assemblyDescription.html
+organism "Homo sapiens rRNA"
+description "rRNA"
+scientificName "Homo sapiens"

@@ -1,6 +1,6 @@
-hub        hs_rRNA_modifications
-shortLabel Human rRNA Modifications
-longLabel  Human rRNA RNA modifications (18S, 28S, 5.8S, 5S)
+hub RNome_v2
+shortLabel RNome Modifications v2
+longLabel Human RNome RNA Modification Atlas (v2)
 genomesFile genomes.txt
-email      baihe_sun@dfci.harvard.edu
+email baihe_sun@mail.dfci.harvard.edu
 descriptionUrl hubDescription.html
