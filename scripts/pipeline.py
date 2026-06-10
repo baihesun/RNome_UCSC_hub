@@ -1,11 +1,11 @@
 """
-process_files.py — v2 data organization and UCSC hub generation
+process_files.py -- data organization and UCSC hub generation
 
 Steps:
   1. Split combined BED files by RNA type → final_data/{RNA_type}/{RNA_type}_{Modality}.bed
   2. Copy raw experiment files → final_data/{RNA_type}/experiments_{modality}/
   3. Convert split BED files to bigBed
-  4. Generate UCSC hub v2 (ucsc_hub/) with hub.txt, genomes.txt, per-assembly trackDb
+  4. Generate UCSC hub (ucsc_hub/) with hub.txt, genomes.txt, per-assembly trackDb
   5. Generate per-file HTML readmes (placeholder descriptions)
   6. Generate Excel manifest
 
@@ -716,7 +716,7 @@ def _write_tsv_manifest():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Step 6 — UCSC hub v2 config
+# Step 6 — UCSC hub config
 # ══════════════════════════════════════════════════════════════════════════════
 
 MODALITY_COLOR = {
@@ -735,7 +735,7 @@ def write_hub_txt():
 <html lang="en">
 <head><meta charset="utf-8"><title>Human RNome RNA Modification Atlas</title></head>
 <body>
-<h2>Human RNome RNA Modification Atlas (v2)</h2>
+<h2>Human RNome RNA Modification Atlas </h2>
 <p>
   A comprehensive map of RNA modifications across the human transcriptome,
   integrating Illumina sequencing, Oxford Nanopore (ONT), and mass spectrometry (MS) data
@@ -747,8 +747,8 @@ def write_hub_txt():
 """)
     content = f"""\
 hub RNome
-shortLabel RNome Modifications v2
-longLabel Human RNome RNA Modification Atlas (v2)
+shortLabel RNome Modifications
+longLabel Human RNome RNA Modification Atlas 
 genomesFile genomes.txt
 email baihe_sun@mail.dfci.harvard.edu
 descriptionUrl hubDescription.html
@@ -992,7 +992,7 @@ def write_trackdb(rna_type):
 
 
 def generate_hub_config():
-    print("\n── Step 6: Generating UCSC hub v2 config ──")
+    print("\n── Step 6: Generating UCSC hub config ──")
     os.makedirs(HUB_DIR, exist_ok=True)
     write_hub_txt()
     write_genomes_txt()
