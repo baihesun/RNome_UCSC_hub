@@ -15,6 +15,14 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.score 0
+filterByRange.score on
+filterLimits.score 0:1000
+filterLabel.score Detection score
+filter.coverage 0
+filterByRange.coverage on
+filterLimits.coverage 0:100
+filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
@@ -48,6 +56,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:100
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100
@@ -74,6 +90,14 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.score 0
+filterByRange.score on
+filterLimits.score 0:1000
+filterLabel.score Detection score
+filter.coverage 0
+filterByRange.coverage on
+filterLimits.coverage 0:1
+filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
@@ -107,6 +131,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:209226784
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100
@@ -126,6 +158,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:1759437
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100
@@ -145,6 +185,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:1132778
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100

@@ -15,6 +15,14 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.score 0
+filterByRange.score on
+filterLimits.score 0:1000
+filterLabel.score Detection score
+filter.coverage 0
+filterByRange.coverage on
+filterLimits.coverage 0:13723723
+filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
@@ -48,6 +56,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:13723723
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100
@@ -74,6 +90,14 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.score 0
+filterByRange.score on
+filterLimits.score 0:1000
+filterLabel.score Detection score
+filter.coverage 0
+filterByRange.coverage on
+filterLimits.coverage 0:7994
+filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
@@ -107,6 +131,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:7994
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100
@@ -133,6 +165,14 @@ itemRgb on
 visibility pack
 scoreMin 0
 scoreMax 1000
+filter.score 0
+filterByRange.score on
+filterLimits.score 0:1000
+filterLabel.score Detection score
+filter.coverage 0
+filterByRange.coverage on
+filterLimits.coverage 0:1
+filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
@@ -166,6 +206,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:378106144
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100
@@ -185,6 +233,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:127689624
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100
@@ -204,6 +260,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:4204625
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100
@@ -223,6 +287,14 @@ priority 2
 	itemRgb on
 	scoreMin 0
 	scoreMax 1000
+	filter.score 0
+	filterByRange.score on
+	filterLimits.score 0:1000
+	filterLabel.score Detection score
+	filter.coverage 0
+	filterByRange.coverage on
+	filterLimits.coverage 0:585547
+	filterLabel.coverage Read coverage
 	filter.frequency 0
 	filterByRange.frequency on
 	filterLimits.frequency 0:100

@@ -19,6 +19,7 @@ Run from repo root:
 """
 
 import colorsys
+import math
 import os
 import re
 import shutil
@@ -298,6 +299,27 @@ def get_mod_names(bed_path):
     except OSError:
         pass
     return ",".join(sorted(names))
+
+
+def get_field_max(bed_path, col_idx):
+    """Return the max value of column col_idx (0-based) across a BED file, or 0 if unavailable."""
+    max_val = 0.0
+    try:
+        with open(bed_path, encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("#") or not line.strip():
+                    continue
+                cols = line.split("\t")
+                if len(cols) > col_idx:
+                    try:
+                        val = float(cols[col_idx])
+                    except ValueError:
+                        continue
+                    if val > max_val:
+                        max_val = val
+    except OSError:
+        pass
+    return max_val
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -842,17 +864,29 @@ def _bed_exists(rna_type, modality):
     )
 
 
-# Shared filter directives for consensus and experiment tracks
-_CONSENSUS_FILTER = (
-    "scoreMin 0\n"
-    "scoreMax 1000\n"
-    "filter.frequency 0\n"
-    "filterByRange.frequency on\n"
-    "filterLimits.frequency 0:100\n"
-    "filterLabel.frequency Modification frequency (%)\n"
-    "filterLabel.name Modification type\n"
-)
-_EXP_FILTER = "".join(f"\t{ln}\n" for ln in _CONSENSUS_FILTER.splitlines())
+# Continuous range filters (score, coverage, frequency) for consensus and experiment tracks
+def build_filter_block(bed_path, indent=False):
+    """Build trackDb filter directives for score, coverage, and frequency (all continuous sliders)."""
+    cov_max = max(1, int(math.ceil(get_field_max(bed_path, 9))))
+    lines = [
+        "scoreMin 0",
+        "scoreMax 1000",
+        "filter.score 0",
+        "filterByRange.score on",
+        "filterLimits.score 0:1000",
+        "filterLabel.score Detection score",
+        "filter.coverage 0",
+        "filterByRange.coverage on",
+        f"filterLimits.coverage 0:{cov_max}",
+        "filterLabel.coverage Read coverage",
+        "filter.frequency 0",
+        "filterByRange.frequency on",
+        "filterLimits.frequency 0:100",
+        "filterLabel.frequency Modification frequency (%)",
+        "filterLabel.name Modification type",
+    ]
+    prefix = "\t" if indent else ""
+    return "".join(f"{prefix}{ln}\n" for ln in lines)
 
 
 def write_trackdb(rna_type):
@@ -900,7 +934,7 @@ def write_trackdb(rna_type):
                 f"type bigBed 9 +\n"
                 f"itemRgb on\n"
                 f"visibility pack\n"
-                + _CONSENSUS_FILTER
+                + build_filter_block(bed_path)
                 + f"filterValues.name {mod_names}\n"
                   f"html {html_ref}\n"
                   f"priority 1\n"
@@ -955,7 +989,7 @@ def write_trackdb(rna_type):
                 f"\tlongLabel {rna_type} {modality} — {stem}\n"
                 f"\ttype bigBed 9 +\n"
                 f"\titemRgb on\n"
-                + _EXP_FILTER
+                + build_filter_block(exp_bed, indent=True)
                 + f"\tfilterValues.name {exp_mods}\n"
                   f"\thtml {exp_html_ref}\n"
                   f"\tpriority {j}\n"
