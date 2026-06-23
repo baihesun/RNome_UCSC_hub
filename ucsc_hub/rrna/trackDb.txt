@@ -1,7 +1,7 @@
-track rRNA_Illumina_consensus
-bigDataUrl rRNA_Illumina.bigBed
-shortLabel Illumina
-longLabel rRNA Illumina modifications
+track rRNA_SRS_consensus
+bigDataUrl rRNA_SRS.bigBed
+shortLabel SRS
+longLabel rRNA SRS modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -21,13 +21,13 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,Um,Y,m1A,m3C,m5C,m6A,m7G
-html rRNA_Illumina
+html rRNA_SRS
 priority 1
 
-track rRNA_ONT_consensus
-bigDataUrl rRNA_ONT.bigBed
-shortLabel ONT
-longLabel rRNA ONT modifications
+track rRNA_LRS_consensus
+bigDataUrl rRNA_LRS.bigBed
+shortLabel LRS
+longLabel rRNA LRS modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -47,7 +47,7 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,I,Um,Y,m5C,m6A
-html rRNA_ONT
+html rRNA_LRS
 priority 2
 
 track rRNA_MS_consensus

@@ -1,7 +1,7 @@
-track polyA_RNA_hg38_Illumina_consensus
-bigDataUrl polyA-RNA_hg38_Illumina.bigBed
-shortLabel Illumina
-longLabel polyA-RNA_hg38 Illumina modifications
+track polyA_RNA_hg38_SRS_consensus
+bigDataUrl polyA-RNA_hg38_SRS.bigBed
+shortLabel SRS
+longLabel polyA-RNA_hg38 SRS modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -21,13 +21,13 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name I,Y,m5C,m6A
-html polyA-RNA_hg38_Illumina
+html polyA-RNA_hg38_SRS
 priority 1
 
-track polyA_RNA_hg38_ONT_consensus
-bigDataUrl polyA-RNA_hg38_ONT.bigBed
-shortLabel ONT
-longLabel polyA-RNA_hg38 ONT modifications
+track polyA_RNA_hg38_LRS_consensus
+bigDataUrl polyA-RNA_hg38_LRS.bigBed
+shortLabel LRS
+longLabel polyA-RNA_hg38 LRS modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -47,15 +47,15 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,I,Um,Y,m5C,m6A
-html polyA-RNA_hg38_ONT
+html polyA-RNA_hg38_LRS
 priority 2
 
-track SRS000090_variants
+track NA12878_variants
 bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_merged.vcf.gz
-shortLabel SRS000090 variants
-longLabel SRS000090 WGS merged variant calls (two-caller)
+shortLabel NA12878 variants
+longLabel NA12878 WGS merged variant calls (two-caller)
 type vcfTabix
 visibility squish
 maxWindowToDraw 200000
-html SRS000090_variants
+html NA12878_variants
 

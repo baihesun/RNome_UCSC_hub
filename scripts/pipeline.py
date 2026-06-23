@@ -8,7 +8,7 @@ Steps:
   4. Generate per-file HTML readmes (descriptions sourced from RNA_modifications_manifest.tsv)
   5. Generate Excel manifest
 
-Each modality (Illumina, ONT, MS) is a single pre-merged consensus BED file —
+Each modality (SRS, LRS, MS) is a single pre-merged consensus BED file —
 there are no per-experiment subtracks in this hub.
 
 RNA type classification:
@@ -31,10 +31,12 @@ import subprocess
 
 SOURCE_DIR = "final_bedRmods"
 
+# Modality labels: SRS = short-read sequencing (Illumina), LRS = long-read
+# sequencing (ONT). Source filenames keep their original Illumina/ONT names.
 COMBINED_FILES = {
-    "Illumina": os.path.join(SOURCE_DIR, "Illumina_combined_polyARNA_tRNA_rRNA_rmchrY.bed"),
-    "ONT":      os.path.join(SOURCE_DIR, "ONT_polyARNA_rRNA_combined.filtered_rmchrY.bed"),
-    "MS":       os.path.join(SOURCE_DIR, "MS_rRNA_tRNA.bed"),
+    "SRS": os.path.join(SOURCE_DIR, "Illumina_combined_polyARNA_tRNA_rRNA_rmchrY.bed"),
+    "LRS": os.path.join(SOURCE_DIR, "ONT_polyARNA_rRNA_combined.filtered_rmchrY.bed"),
+    "MS":  os.path.join(SOURCE_DIR, "MS_rRNA_tRNA.bed"),
 }
 
 MANIFEST_PATH = "RNA_modifications_manifest.tsv"
@@ -85,7 +87,7 @@ COLOR_CODE = {
 DEFAULT_COLOR = "#808080"
 
 RNA_TYPES  = ["polyA-RNA_hg38", "tRNA", "rRNA"]
-MODALITIES = ["Illumina", "ONT", "MS"]
+MODALITIES = ["SRS", "LRS", "MS"]
 
 # ── Assembly config ────────────────────────────────────────────────────────────
 
@@ -126,16 +128,16 @@ table rna_mods
 "RNA modification sites"
 (
 string  chrom;              "Chromosome or RNA name"
-uint    chromStart;         "Start position (0-based)"
+uint    chromStart;         "Start position"
 uint    chromEnd;           "End position"
 string  name;               "Modification short name"
-uint    score;              "Detection score (0-1000)"
+uint    score;              "Score (0-1000)"
 char[1] strand;             "Strand (+ or -)"
 uint    thickStart;         "Same as chromStart"
 uint    thickEnd;           "Same as chromEnd"
 uint    itemRgb;            "Display color (R,G,B)"
-uint    coverage;           "Read coverage"
-float   frequency;          "Modification frequency (%)"
+uint    coverage;           "Coverage"
+float   frequency;          "Frequency (%)"
 string  single_letter_code; "Single-letter modification code"
 lstring mod_id;             "Modification identifier"
 )
@@ -145,7 +147,7 @@ lstring mod_id;             "Modification identifier"
 
 def load_modality_descriptions():
     """
-    Map modality (Illumina/ONT/MS) → description text, read from MANIFEST_PATH.
+    Map modality (SRS/LRS/MS) → description text, read from MANIFEST_PATH.
 
     The manifest lists one row per combined source file (Filename, Description);
     rows are matched back to COMBINED_FILES by basename. The same text is reused
@@ -577,7 +579,7 @@ def write_hub_txt():
 <h2>Human RNome RNA Modification Atlas </h2>
 <p>
   A comprehensive map of RNA modifications across the human transcriptome,
-  integrating Illumina sequencing, Oxford Nanopore (ONT), and mass spectrometry (MS) data
+  integrating short-read sequencing (SRS), long-read sequencing (LRS), and mass spectrometry (MS) data
   for poly-A RNA, ribosomal RNA (rRNA), and transfer RNA (tRNA).
 </p>
 <p><strong>Reference:</strong> PLACEHOLDER_DOI</p>
@@ -747,28 +749,28 @@ def write_trackdb(rna_type):
             stanzas.append(f"# TODO: {bigbed_fname} not yet generated\n")
 
     if rna_type == "polyA-RNA_hg38":
-        vcf_html = os.path.join(HUB_DIR, cfg["hub_dir"], "SRS000090_variants.html")
+        vcf_html = os.path.join(HUB_DIR, cfg["hub_dir"], "NA12878_variants.html")
         if not os.path.exists(vcf_html):
             with open(vcf_html, "w") as fh:
                 fh.write("""\
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><title>SRS000090 WGS Variants</title></head>
+<head><meta charset="utf-8"><title>NA12878 WGS Variants</title></head>
 <body>
-<h2>SRS000090 — WGS Merged Variant Calls (two-caller)</h2>
-<p>Whole-genome sequencing variant calls for sample SRS000090, merged from two independent variant callers.</p>
+<h2>NA12878 — WGS Merged Variant Calls (two-caller)</h2>
+<p>Whole-genome sequencing variant calls for sample NA12878, merged from two independent variant callers.</p>
 </body>
 </html>
 """)
         stanzas.append(
-            "track SRS000090_variants\n"
+            "track NA12878_variants\n"
             "bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_merged.vcf.gz\n"
-            "shortLabel SRS000090 variants\n"
-            "longLabel SRS000090 WGS merged variant calls (two-caller)\n"
+            "shortLabel NA12878 variants\n"
+            "longLabel NA12878 WGS merged variant calls (two-caller)\n"
             "type vcfTabix\n"
             "visibility squish\n"
             "maxWindowToDraw 200000\n"
-            f"html SRS000090_variants\n"
+            f"html NA12878_variants\n"
         )
 
     with open(path, "w") as fh:

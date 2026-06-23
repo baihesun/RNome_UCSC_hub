@@ -1,7 +1,7 @@
-track tRNA_Illumina_consensus
-bigDataUrl tRNA_Illumina.bigBed
-shortLabel Illumina
-longLabel tRNA Illumina modifications
+track tRNA_SRS_consensus
+bigDataUrl tRNA_SRS.bigBed
+shortLabel SRS
+longLabel tRNA SRS modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -21,7 +21,7 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,D,Gm,I,Um,Y,ac4C,acp3U,f5C,i6A,m1A,m1G,m1I,m2,2G,m2G,m3C,m5C,m5U,m7G,mxU,s2U,t6A
-html tRNA_Illumina
+html tRNA_SRS
 priority 1
 
 track tRNA_MS_consensus

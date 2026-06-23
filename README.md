@@ -2,9 +2,10 @@
 
 UCSC Genome Browser assembly hub visualizing RNA modifications across the human
 "RNome": poly-A RNA (hg38), ribosomal RNA (rRNA, 18S/28S/5.8S/5S), and transfer
-RNA (tRNA). Modifications are detected by three modalities — Illumina
-sequencing, Oxford Nanopore (ONT), and mass spectrometry (MS) — each provided
-as a single pre-merged, genome-mapped consensus BED file. Each modality is
+RNA (tRNA). Modifications are detected by three modalities — short-read
+sequencing (SRS, Illumina), long-read sequencing (LRS, Oxford Nanopore/ONT),
+and mass spectrometry (MS) — each provided as a single pre-merged,
+genome-mapped consensus BED file. Each modality is
 rendered as one flat track per RNA type (no per-experiment subtracks); track
 descriptions are sourced directly from `RNA_modifications_manifest.tsv`.
 
@@ -28,11 +29,11 @@ RNome_dataviz_repo/
 ├── final_data/                             # Pipeline output, organized by RNA type
 │   ├── RNA_modifications_manifest.xlsx        # Generated manifest of all tracks + hub URLs
 │   ├── polyA-RNA_hg38/
-│   │   └── polyA-RNA_hg38_{Illumina,ONT}.bed
+│   │   └── polyA-RNA_hg38_{SRS,LRS}.bed
 │   ├── rRNA/
-│   │   └── rRNA_{Illumina,ONT,MS}.bed
+│   │   └── rRNA_{SRS,LRS,MS}.bed
 │   └── tRNA/
-│       └── tRNA_{Illumina,MS}.bed
+│       └── tRNA_{SRS,MS}.bed
 │
 ├── scripts/
 │   ├── pipeline.py                         # End-to-end hub generation (see below)
@@ -74,8 +75,8 @@ chmod +x bedToBigBed faToTwoBit
 
 ### Run the pipeline (`pipeline.py`)
 
-The 3 files in `final_bedRmods/` (Illumina, ONT, MS) are already in genomic
-coordinates. From the repo root:
+The 3 files in `final_bedRmods/` (SRS/Illumina, LRS/ONT, MS) are already in
+genomic coordinates. From the repo root:
 
 ```bash
 python scripts/pipeline.py
@@ -83,7 +84,7 @@ python scripts/pipeline.py
 
 This will:
 
-1. Split each combined Illumina/ONT/MS BED file by RNA type (`rRNA`, `tRNA`,
+1. Split each combined SRS/LRS/MS BED file by RNA type (`rRNA`, `tRNA`,
    `polyA-RNA_hg38`) into `final_data/{RNA_type}/{RNA_type}_{Modality}.bed`
 2. Normalize each split BED file for `bedToBigBed`: clamp scores to 0–1000,
    recolor by modification type (hue) × frequency (saturation), remap
@@ -137,9 +138,9 @@ https://raw.githubusercontent.com/baihesun/RNome_UCSC_hub/main/ucsc_hub/hub.txt
 
 | Assembly | UCSC name | Modalities | Notes |
 |---|---|---|---|
-| Poly-A RNA | `hg38` | Illumina, ONT | Standard hg38; default position `chr21:8400001-8500000` |
-| rRNA | `hs_rRNA` | Illumina, ONT, MS | Custom 2bit assembly (18S/28S/5.8S/5S) |
-| tRNA | `hs_tRNA` | Illumina, MS | Custom 2bit assembly |
+| Poly-A RNA | `hg38` | SRS, LRS | Standard hg38; default position `chr21:8400001-8500000` |
+| rRNA | `hs_rRNA` | SRS, LRS, MS | Custom 2bit assembly (18S/28S/5.8S/5S) |
+| tRNA | `hs_tRNA` | SRS, MS | Custom 2bit assembly |
 
 Each present modality is a single flat consensus track
 (`{RNA_type}_{Modality}.bigBed`) — all sites for that RNA type/modality,
@@ -147,7 +148,7 @@ colored and filterable by modification type, score, coverage, and frequency.
 There are no per-experiment subtracks in this hub.
 
 The hg38 assembly additionally carries an externally hosted track,
-**SRS000090 variants** (WGS merged variant calls from two callers), streamed
+**NA12878 variants** (WGS merged variant calls from two callers), streamed
 from `https://storage.googleapis.com/srs000090-wgs/`.
 
 ---
