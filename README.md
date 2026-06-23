@@ -3,8 +3,10 @@
 UCSC Genome Browser assembly hub visualizing RNA modifications across the human
 "RNome": poly-A RNA (hg38), ribosomal RNA (rRNA, 18S/28S/5.8S/5S), and transfer
 RNA (tRNA). Modifications are detected by three modalities — Illumina
-sequencing, Oxford Nanopore (ONT), and mass spectrometry (MS) — and combined
-into per-RNA-type, per-modality consensus tracks plus per-experiment subtracks.
+sequencing, Oxford Nanopore (ONT), and mass spectrometry (MS) — each provided
+as a single pre-merged, genome-mapped consensus BED file. Each modality is
+rendered as one flat track per RNA type (no per-experiment subtracks); track
+descriptions are sourced directly from `RNA_modifications_manifest.tsv`.
 
 ---
 
@@ -12,36 +14,31 @@ into per-RNA-type, per-modality consensus tracks plus per-experiment subtracks.
 
 ```
 RNome_dataviz_repo/
+├── RNA_modifications_manifest.tsv          # Source of truth: Filename → Description, per modality
+├── final_bedRmods/                         # Pipeline input: 3 pre-merged, genome-mapped BED files
+│   ├── Illumina_combined_polyARNA_tRNA_rRNA_rmchrY.bed
+│   ├── ONT_polyARNA_rRNA_combined.filtered_rmchrY.bed
+│   └── MS_rRNA_tRNA.bed
+│
 ├── reference/                              # Reference sequences & annotations
 │   ├── hs_rRNAs_NR_046235.fa(.fai)            # Human rRNA reference (18S/28S/5.8S/5S)
 │   ├── Step3_hg38_Homo_sapiens_47seq...fa     # tRNA reference sequences
-│   └── gencode.v49...annotation.gtf.gz        # GENCODE hg38 annotation (for BedPyLift)
+│   └── gencode.v49...annotation.gtf.gz        # GENCODE hg38 annotation (only needed by BedPyLift.py)
 │
-├── processed_data/                         # Per-modality intermediate files
-│   ├── illumina/ ont/ ms/
-│   │   ├── *_header.txt                       # bedRmod header (mod-code legend, provenance)
-│   │   ├── *_rna.bed                          # Modifications in transcriptomic coords
-│   │   └── *_genome.bed                       # Lifted to genomic coords via BedPyLift.py
-│   └── consensus_genome.bed                   # Modalities merged, duplicate sites collapsed
-│
-├── final_data/                             # Pipeline inputs/outputs, organized by RNA type
-│   ├── Illumina_combined_polyARNA_tRNA_rRNA.bed     # Combined Illumina input
-│   ├── ONT_polyARNA_rRNA_combined.filtered_*.bed    # Combined ONT input
-│   ├── MS_rRNA_tRNA.bed                             # Combined MS input
-│   ├── RNA_modifications_manifest.xlsx              # Generated manifest of all tracks
+├── final_data/                             # Pipeline output, organized by RNA type
+│   ├── RNA_modifications_manifest.xlsx        # Generated manifest of all tracks + hub URLs
 │   ├── polyA-RNA_hg38/
-│   │   ├── polyA-RNA_hg38_{Illumina,ONT}.bed          # Consensus tracks
-│   │   └── experiments_{illumina,ont}/                # Individual raw experiments
+│   │   └── polyA-RNA_hg38_{Illumina,ONT}.bed
 │   ├── rRNA/
-│   │   ├── rRNA_{Illumina,ONT,MS}.bed
-│   │   └── experiments_{illumina,ont,ms}/
+│   │   └── rRNA_{Illumina,ONT,MS}.bed
 │   └── tRNA/
-│       ├── tRNA_{Illumina,MS}.bed
-│       └── experiments_{illumina,ms}/
+│       └── tRNA_{Illumina,MS}.bed
 │
 ├── scripts/
-│   ├── pipeline.py                      # End-to-end hub generation (see below)
-│   └── BedPyLift.py                        # Transcriptome → genome coordinate lifting
+│   ├── pipeline.py                         # End-to-end hub generation (see below)
+│   └── BedPyLift.py                        # Transcriptome → genome coordinate lifting (not
+│                                            # needed for this hub — final_bedRmods/ is already
+│                                            # genome-mapped; kept for future transcript-coord inputs)
 │
 ├── ucsc_hub/                                # Generated UCSC assembly hub
 │   ├── hub.txt / genomes.txt / hubDescription.html
@@ -51,8 +48,11 @@ RNome_dataviz_repo/
 │
 ├── utils/                                    # UCSC command-line tools
 │   ├── bedToBigBed
-│   └── faToTwoBit
+│   ├── faToTwoBit
+│   └── hg38.chrom.sizes
 │
+├── *_old/                                    # Previous hub generation (experiment-level subtracks);
+│                                              # kept for reference, not used by the current pipeline
 └── README.md
 ```
 
@@ -63,7 +63,6 @@ RNome_dataviz_repo/
 ### Requirements
 
 - Python 3.7+
-- [`polars`](https://pola.rs/) (used by `BedPyLift.py`)
 - `openpyxl` (optional — used for the Excel manifest; falls back to a TSV if missing)
 - UCSC command line utilities (already included in `utils/` for macOS Apple Silicon):
 
@@ -73,29 +72,10 @@ curl -O https://hgdownload.soe.ucsc.edu/admin/exe/macOSX.arm64/faToTwoBit
 chmod +x bedToBigBed faToTwoBit
 ```
 
-### 1. Lift transcriptomic coordinates to genomic coordinates (`BedPyLift.py`)
+### Run the pipeline (`pipeline.py`)
 
-For each modality, convert per-transcript (ENST) bedRmod positions in
-`processed_data/{modality}/{modality}_rna.bed` to genomic coordinates using a
-GTF transcript model:
-
-```bash
-python scripts/BedPyLift.py \
-  --gtf reference/gencode.v49.chr_patch_hapl_scaff.annotation.gtf.gz \
-  --bed processed_data/illumina/illumina_rna.bed \
-  --output processed_data/illumina/illumina_genome.bed
-```
-
-This builds an exon-based transcript index from the GTF, maps each
-transcriptomic position to `(chrom, genomic_pos, strand)`, merges duplicate
-genomic sites using a coverage-weighted average frequency, and logs mapping
-statistics (conversion rate, unmappable transcripts, duplicate sites).
-
-### 2. Run the main pipeline (`pipeline.py`)
-
-Update `SOURCE_DIR`, `COMBINED_FILES`, and `EXPERIMENT_FILES` at the top of
-`scripts/pipeline.py` to point at your source bedRmod files, then from the
-repo root:
+The 3 files in `final_bedRmods/` (Illumina, ONT, MS) are already in genomic
+coordinates. From the repo root:
 
 ```bash
 python scripts/pipeline.py
@@ -103,22 +83,28 @@ python scripts/pipeline.py
 
 This will:
 
-1. Split the combined Illumina/ONT/MS BED files by RNA type (`rRNA`, `tRNA`,
+1. Split each combined Illumina/ONT/MS BED file by RNA type (`rRNA`, `tRNA`,
    `polyA-RNA_hg38`) into `final_data/{RNA_type}/{RNA_type}_{Modality}.bed`
-2. Copy individual raw experiment files into
-   `final_data/{RNA_type}/experiments_{modality}/`
-3. Normalize each BED file for `bedToBigBed`: clamp scores to 0–1000, recolor
-   by modification type (hue) × frequency (saturation), remap Ensembl
-   scaffold names to UCSC names where needed, and convert to bigBed
+2. Normalize each split BED file for `bedToBigBed`: clamp scores to 0–1000,
+   recolor by modification type (hue) × frequency (saturation), remap
+   Ensembl scaffold names to UCSC names where needed, and convert to bigBed
    (`bedToBigBed -type=bed9+4 -as=rna_mods.as`)
-4. Generate the UCSC hub config (`hub.txt`, `genomes.txt`, per-assembly
-   `trackDb.txt`) with consensus tracks, per-experiment composite subtracks,
-   and frequency / modification-type filters
-5. Generate placeholder per-track HTML descriptions
-6. Generate `final_data/RNA_modifications_manifest.xlsx` (or `.tsv` if
+3. Generate one HTML description per `{RNA_type}_{Modality}` track, using the
+   matching modality's description text from `RNA_modifications_manifest.tsv`
+4. Generate `final_data/RNA_modifications_manifest.xlsx` (or `.tsv` if
    `openpyxl` is unavailable) listing every track and its hub bigBed URL
+5. Generate the UCSC hub config (`hub.txt`, `genomes.txt`, per-assembly
+   `trackDb.txt`) — one flat track per RNA type/modality, each with
+   score / coverage / frequency / modification-type filters
 
-### One-time setup — convert reference sequences to .2bit
+To change a track's description, edit `RNA_modifications_manifest.tsv`
+(matched to `COMBINED_FILES` by filename) and re-run the pipeline.
+
+### One-time setup — custom assembly sequences (.2bit)
+
+Needed once for the custom `hs_rRNA` / `hs_tRNA` assemblies (already present
+under `ucsc_hub/rrna/` and `ucsc_hub/trna/`; regenerate only if the reference
+sequences change):
 
 ```bash
 ./utils/faToTwoBit reference/hs_rRNAs_NR_046235.fa ucsc_hub/rrna/hs_rRNAs_NR_046235.2bit
@@ -155,12 +141,10 @@ https://raw.githubusercontent.com/baihesun/RNome_UCSC_hub/main/ucsc_hub/hub.txt
 | rRNA | `hs_rRNA` | Illumina, ONT, MS | Custom 2bit assembly (18S/28S/5.8S/5S) |
 | tRNA | `hs_tRNA` | Illumina, MS | Custom 2bit assembly |
 
-For each modality present on an assembly, the hub provides:
-
-- a **consensus track** (`{RNA_type}_{Modality}.bigBed`) — all sites for that
-  RNA type/modality, colored and filterable by modification type and frequency
-- an **experiments composite** — one subtrack per individual raw experiment
-  file, under `experiments_{modality}/`
+Each present modality is a single flat consensus track
+(`{RNA_type}_{Modality}.bigBed`) — all sites for that RNA type/modality,
+colored and filterable by modification type, score, coverage, and frequency.
+There are no per-experiment subtracks in this hub.
 
 The hg38 assembly additionally carries an externally hosted track,
 **SRS000090 variants** (WGS merged variant calls from two callers), streamed

@@ -3,11 +3,13 @@ process_files.py -- data organization and UCSC hub generation
 
 Steps:
   1. Split combined BED files by RNA type → final_data/{RNA_type}/{RNA_type}_{Modality}.bed
-  2. Copy raw experiment files → final_data/{RNA_type}/experiments_{modality}/
-  3. Convert split BED files to bigBed
-  4. Generate UCSC hub (ucsc_hub/) with hub.txt, genomes.txt, per-assembly trackDb
-  5. Generate per-file HTML readmes (placeholder descriptions)
-  6. Generate Excel manifest
+  2. Convert split BED files to bigBed
+  3. Generate UCSC hub (ucsc_hub/) with hub.txt, genomes.txt, per-assembly trackDb
+  4. Generate per-file HTML readmes (descriptions sourced from RNA_modifications_manifest.tsv)
+  5. Generate Excel manifest
+
+Each modality (Illumina, ONT, MS) is a single pre-merged consensus BED file —
+there are no per-experiment subtracks in this hub.
 
 RNA type classification:
   chrom contains "rRNA"  →  rRNA
@@ -15,7 +17,7 @@ RNA type classification:
   else                   →  polyA-RNA_hg38
 
 Run from repo root:
-  python scripts/process_files.py
+  python scripts/pipeline.py
 """
 
 import colorsys
@@ -27,52 +29,15 @@ import subprocess
 
 # ── Source data ────────────────────────────────────────────────────────────────
 
-SOURCE_DIR = "/Users/baihesun/Desktop/RNome_final_bedRmods"
+SOURCE_DIR = "final_bedRmods"
 
 COMBINED_FILES = {
-    "Illumina": os.path.join(SOURCE_DIR, "illumina",  "Illumina_combined_polyARNA_tRNA_rRNA.bed"),
-    "ONT":      os.path.join(SOURCE_DIR, "ont",       "ONT_polyARNA_rRNA_combined.filtered.bed"),
-    "MS":       os.path.join(SOURCE_DIR, "mass_spec", "MS_rRNA_tRNA.bed"),
+    "Illumina": os.path.join(SOURCE_DIR, "Illumina_combined_polyARNA_tRNA_rRNA_rmchrY.bed"),
+    "ONT":      os.path.join(SOURCE_DIR, "ONT_polyARNA_rRNA_combined.filtered_rmchrY.bed"),
+    "MS":       os.path.join(SOURCE_DIR, "MS_rRNA_tRNA.bed"),
 }
 
-# {RNA_type: {Modality: [src_path, ...]}}
-EXPERIMENT_FILES = {
-    "rRNA": {
-        "Illumina": [
-            os.path.join(SOURCE_DIR, "illumina",  "raw", "rRNA_Illumina.bed"),
-        ],
-        "ONT": [
-            os.path.join(SOURCE_DIR, "ont",       "raw", "rRNA.native_vs_ivt_fisher.filtered.bed"),
-        ],
-        "MS": [
-            os.path.join(SOURCE_DIR, "mass_spec", "raw", "HRP_C_001_rRNA_001.bed"),
-            os.path.join(SOURCE_DIR, "mass_spec", "raw", "HRP_C_002_rRNA_001.bed"),
-            os.path.join(SOURCE_DIR, "mass_spec", "raw", "HRP_C_005_rRNA_003+Kaiser_20260213_28S_rRNA_3.5uL.bed"),
-            os.path.join(SOURCE_DIR, "mass_spec", "raw", "Limbach_group_Protiowizard convert_rRNA_T1_G2.bed"),
-        ],
-    },
-    "tRNA": {
-        "Illumina": [
-            os.path.join(SOURCE_DIR, "illumina",  "raw", "combined_YM+TP_bedRmod_RNOME_tRNA_noScoreAndFrequency.bed"),
-        ],
-        "MS": [
-            os.path.join(SOURCE_DIR, "mass_spec", "raw", "HRP_C_001_tRNA_003.bed"),
-            os.path.join(SOURCE_DIR, "mass_spec", "raw", "Kaiser_20260206_tRNA_1000ng_1.bed"),
-            os.path.join(SOURCE_DIR, "mass_spec", "raw", "Limbach_group_Proteowizard convert tRNA_HRP.bed"),
-        ],
-    },
-    "polyA-RNA_hg38": {
-        "Illumina": [
-            os.path.join(SOURCE_DIR, "illumina",  "raw", "polyA_m6A.bed"),
-            os.path.join(SOURCE_DIR, "illumina",  "raw", "polyA_m5C.bed"),
-            os.path.join(SOURCE_DIR, "illumina",  "raw", "polyA_psiU.bed"),
-            os.path.join(SOURCE_DIR, "illumina",  "raw", "Inosine_JACUSA_REDItools.bed"),
-        ],
-        "ONT": [
-            os.path.join(SOURCE_DIR, "ont",       "raw", "polyA.native_vs_ivt_fisher.filtered.bed"),
-        ],
-    },
-}
+MANIFEST_PATH = "RNA_modifications_manifest.tsv"
 
 # ── Output paths ───────────────────────────────────────────────────────────────
 
@@ -176,36 +141,34 @@ lstring mod_id;             "Modification identifier"
 )
 """
 
-# ── Placeholder descriptions (update with actual text for publication) ─────────
+# ── Track descriptions, sourced from the manifest ───────────────────────────────
 
-FILE_DESCRIPTIONS = {
-    "polyA-RNA_hg38_Illumina.bed": (
-        "Illumina sequencing-based RNA modifications in human polyadenylated RNA, "
-        "mapped to the hg38 reference genome."
-    ),
-    "polyA-RNA_hg38_ONT.bed": (
-        "Oxford Nanopore sequencing-based RNA modifications in human polyadenylated RNA, "
-        "mapped to the hg38 reference genome."
-    ),
-    "rRNA_Illumina.bed": (
-        "Illumina sequencing-based RNA modifications in human ribosomal RNA "
-        "(18S, 28S, 5.8S, 5S)."
-    ),
-    "rRNA_ONT.bed": (
-        "Oxford Nanopore sequencing-based RNA modifications in human ribosomal RNA "
-        "(18S, 28S, 5.8S, 5S)."
-    ),
-    "rRNA_MS.bed": (
-        "Mass spectrometry-based RNA modifications in human ribosomal RNA "
-        "(18S, 28S, 5.8S, 5S)."
-    ),
-    "tRNA_Illumina.bed": (
-        "Illumina sequencing-based RNA modifications in human transfer RNA."
-    ),
-    "tRNA_MS.bed": (
-        "Mass spectrometry-based RNA modifications in human transfer RNA."
-    ),
-}
+def load_modality_descriptions():
+    """
+    Map modality (Illumina/ONT/MS) → description text, read from MANIFEST_PATH.
+
+    The manifest lists one row per combined source file (Filename, Description);
+    rows are matched back to COMBINED_FILES by basename. The same text is reused
+    for every RNA type split out of that modality's combined file.
+    """
+    desc_by_filename = {}
+    with open(MANIFEST_PATH, encoding="utf-8") as fh:
+        next(fh, None)  # header
+        for line in fh:
+            line = line.rstrip("\n")
+            if not line.strip():
+                continue
+            fname, _, desc = line.partition("\t")
+            desc_by_filename[fname.strip()] = desc.strip()
+
+    descriptions = {}
+    for modality, src_path in COMBINED_FILES.items():
+        fname = os.path.basename(src_path)
+        if fname in desc_by_filename:
+            descriptions[modality] = desc_by_filename[fname]
+        else:
+            print(f"  [WARN] No manifest description found for {fname}")
+    return descriptions
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -353,27 +316,7 @@ def split_combined_files():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Step 2 — Copy raw experiment files
-# ══════════════════════════════════════════════════════════════════════════════
-
-def copy_experiment_files():
-    print("\n── Step 2: Copying experiment files ──")
-    for rna_type, modality_map in EXPERIMENT_FILES.items():
-        for modality, src_paths in modality_map.items():
-            dest_dir = os.path.join(FINAL_DATA_DIR, rna_type, f"experiments_{modality.lower()}")
-            os.makedirs(dest_dir, exist_ok=True)
-            for src in src_paths:
-                if not os.path.exists(src):
-                    print(f"  [SKIP] not found: {src}")
-                    continue
-                dest_name = os.path.basename(src).replace(" ", "_")
-                dest = os.path.join(dest_dir, dest_name)
-                shutil.copy2(src, dest)
-                print(f"  Copied → {dest}")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Step 3 — Convert split BED → bigBed
+# Step 2 — Convert split BED → bigBed
 # ══════════════════════════════════════════════════════════════════════════════
 
 def process_bed_for_bigbed(src_path, dst_path, chrom_remap=None, valid_chroms=None):
@@ -460,7 +403,7 @@ def run_bedtobigbed(bed_path, sizes_path, as_path, bigbed_path):
 
 
 def convert_split_to_bigbed():
-    print("\n── Step 3: Converting split BED → bigBed ──")
+    print("\n── Step 2: Converting split BED → bigBed ──")
 
     # Build rRNA chrom sizes from FAI
     rrna_sizes_path = os.path.join(HUB_DIR, "rrna", "hs_rRNA.chrom.sizes")
@@ -520,74 +463,7 @@ def convert_split_to_bigbed():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Step 3b — Convert experiment BED files to bigBed
-# ══════════════════════════════════════════════════════════════════════════════
-
-def _exp_bigbeds(rna_type, modality, cfg):
-    """Return sorted list of (stem, filename) for experiment bigBed files."""
-    exp_dir = os.path.join(HUB_DIR, cfg["hub_dir"], f"experiments_{modality.lower()}")
-    if not os.path.isdir(exp_dir):
-        return []
-    return sorted(
-        (os.path.splitext(f)[0], f)
-        for f in os.listdir(exp_dir)
-        if f.endswith(".bigBed")
-    )
-
-
-def convert_experiments_to_bigbed():
-    print("\n── Step 3b: Converting experiment BED → bigBed ──")
-
-    hg38_remap = build_ensembl_to_ucsc_map(HG38_SIZES) if os.path.exists(HG38_SIZES) else {}
-
-    rrna_sizes_path = os.path.join(HUB_DIR, "rrna", "hs_rRNA.chrom.sizes")
-    rrna_valid  = set(fai_to_sizes(RRNA_FAI).keys()) if os.path.exists(RRNA_FAI) else None
-    trna_valid  = set(fai_to_sizes(TRNA_SIZES).keys()) if TRNA_SIZES and os.path.exists(TRNA_SIZES) else None
-
-    sizes_for = {
-        "rRNA":            rrna_sizes_path if os.path.exists(rrna_sizes_path) else None,
-        "polyA-RNA_hg38":  HG38_SIZES     if os.path.exists(HG38_SIZES)      else None,
-        "tRNA":            TRNA_SIZES     if TRNA_SIZES and os.path.exists(TRNA_SIZES) else None,
-    }
-    valid_for = {"rRNA": rrna_valid, "polyA-RNA_hg38": None, "tRNA": trna_valid}
-    remap_for = {"rRNA": None, "polyA-RNA_hg38": hg38_remap, "tRNA": None}
-
-    for rna_type, modality_map in EXPERIMENT_FILES.items():
-        cfg     = ASSEMBLY_CFG[rna_type]
-        sizes   = sizes_for[rna_type]
-        as_path = os.path.join(HUB_DIR, cfg["hub_dir"], "rna_mods.as")
-
-        if not sizes:
-            print(f"  [SKIP] {rna_type} — no chrom sizes for experiment bigBed")
-            continue
-
-        for modality, src_paths in modality_map.items():
-            exp_hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"], f"experiments_{modality.lower()}")
-            os.makedirs(exp_hub_dir, exist_ok=True)
-
-            for src in src_paths:
-                fname   = os.path.basename(src).replace(" ", "_")
-                src_bed = os.path.join(FINAL_DATA_DIR, rna_type, f"experiments_{modality.lower()}", fname)
-                if not os.path.exists(src_bed):
-                    continue
-                stem       = os.path.splitext(fname)[0]
-                fixed_bed  = src_bed.replace(".bed", ".fixed.bed")
-                bigbed_out = os.path.join(exp_hub_dir, f"{stem}.bigBed")
-
-                n, skipped = process_bed_for_bigbed(
-                    src_bed, fixed_bed,
-                    chrom_remap=remap_for[rna_type],
-                    valid_chroms=valid_for[rna_type],
-                )
-                skip_str = f" ({skipped} skipped)" if skipped else ""
-                if run_bedtobigbed(fixed_bed, sizes, as_path, bigbed_out):
-                    print(f"  bigBed ({n} rows{skip_str}) → {bigbed_out}")
-                if os.path.exists(fixed_bed):
-                    os.remove(fixed_bed)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Step 4 — HTML readmes
+# Step 3 — HTML readmes
 # ══════════════════════════════════════════════════════════════════════════════
 
 def write_html_readme(filename, description, out_dir):
@@ -617,41 +493,8 @@ def write_html_readme(filename, description, out_dir):
     return html_path
 
 
-def write_experiments_html(rna_type, modality, exp_filenames, hub_dir):
-    stem      = f"{rna_type}_{modality}_experiments"
-    html_path = os.path.join(hub_dir, f"{stem}.html")
-    desc = (
-        f"Individual {modality} sequencing experiment tracks for {rna_type} RNA modifications. "
-        f"Each subtrack represents one experiment or sample."
-    )
-    items = "".join(f"    <li>{f}</li>\n" for f in exp_filenames)
-    content = f"""\
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{rna_type} {modality} Experiments</title>
-</head>
-<body>
-<h2>{rna_type} — {modality} Experiments</h2>
-<p>{desc}</p>
-<p>
-  <strong>Reference:</strong>
-  <a href="{PAPER_URL}">{PAPER_URL}</a>
-</p>
-<h3>Included experiments</h3>
-<ul>
-{items}</ul>
-</body>
-</html>
-"""
-    with open(html_path, "w", encoding="utf-8") as fh:
-        fh.write(content)
-    return html_path
-
-
-def generate_html_readmes():
-    print("\n── Step 4: Generating HTML readmes ──")
+def generate_html_readmes(descriptions):
+    print("\n── Step 3: Generating HTML readmes ──")
     for rna_type in RNA_TYPES:
         cfg     = ASSEMBLY_CFG[rna_type]
         hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"])
@@ -661,65 +504,45 @@ def generate_html_readmes():
             bed_path = os.path.join(FINAL_DATA_DIR, rna_type, filename)
             if not os.path.exists(bed_path):
                 continue
-            desc = FILE_DESCRIPTIONS.get(
-                filename,
+            desc = descriptions.get(
+                modality,
                 f"RNA modification sites — {rna_type}, {modality}. (PLACEHOLDER description)"
             )
             html_path = write_html_readme(filename, desc, hub_dir)
             print(f"  HTML → {html_path}")
 
-            # Experiments composite HTML
-            exp_src_paths = EXPERIMENT_FILES.get(rna_type, {}).get(modality, [])
-            if exp_src_paths:
-                exp_names = [os.path.basename(p).replace(" ", "_") for p in exp_src_paths]
-                exp_html  = write_experiments_html(rna_type, modality, exp_names, hub_dir)
-                print(f"  HTML → {exp_html}")
-
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Step 5 — Excel manifest
+# Step 4 — Excel manifest
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _manifest_rows():
-    """Yield (filename, rna_type, modality, track_type, description, hub_url) for every track."""
+def _manifest_rows(descriptions):
+    """Yield (filename, rna_type, modality, description, hub_url) for every consensus track."""
     for rna_type in RNA_TYPES:
         cfg = ASSEMBLY_CFG[rna_type]
-        # Consensus rows
         for modality in MODALITIES:
             filename = f"{rna_type}_{modality}.bed"
             if not os.path.exists(os.path.join(FINAL_DATA_DIR, rna_type, filename)):
                 continue
             hub_url = f"{HUB_BASE_URL}/{HUB_DIR}/{cfg['hub_dir']}/{rna_type}_{modality}.bigBed"
-            desc    = FILE_DESCRIPTIONS.get(filename, f"RNA modification sites — {rna_type}, {modality}.")
-            yield filename, rna_type, modality, "consensus", desc, hub_url
-        # Experiment rows
-        for modality, src_paths in EXPERIMENT_FILES.get(rna_type, {}).items():
-            for src in src_paths:
-                fname   = os.path.basename(src).replace(" ", "_")
-                stem    = os.path.splitext(fname)[0]
-                src_bed = os.path.join(FINAL_DATA_DIR, rna_type, f"experiments_{modality.lower()}", fname)
-                if not os.path.exists(src_bed):
-                    continue
-                hub_url = (f"{HUB_BASE_URL}/{HUB_DIR}/{cfg['hub_dir']}/"
-                           f"experiments_{modality.lower()}/{stem}.bigBed")
-                desc    = f"Individual {modality} experiment — {rna_type} RNA modifications. (PLACEHOLDER)"
-                yield fname, rna_type, modality, "experiment", desc, hub_url
+            desc    = descriptions.get(modality, f"RNA modification sites — {rna_type}, {modality}.")
+            yield filename, rna_type, modality, desc, hub_url
 
 
-def generate_excel_manifest():
-    print("\n── Step 5: Generating Excel manifest ──")
+def generate_excel_manifest(descriptions):
+    print("\n── Step 4: Generating Excel manifest ──")
     try:
         from openpyxl import Workbook
     except ImportError:
         print("  [SKIP] openpyxl not installed — run: pip install openpyxl")
-        _write_tsv_manifest()
+        _write_tsv_manifest(descriptions)
         return
 
     wb = Workbook()
     ws = wb.active
     ws.title = "Manifest"
-    ws.append(["Filename", "RNA Type", "Modality", "Track Type", "Description", "Hub BigBed URL", "Paper"])
-    for row in _manifest_rows():
+    ws.append(["Filename", "RNA Type", "Modality", "Description", "Hub BigBed URL", "Paper"])
+    for row in _manifest_rows(descriptions):
         ws.append([*row, PAPER_URL])
 
     out_path = os.path.join(FINAL_DATA_DIR, "RNA_modifications_manifest.xlsx")
@@ -727,25 +550,19 @@ def generate_excel_manifest():
     print(f"  Manifest → {out_path}")
 
 
-def _write_tsv_manifest():
+def _write_tsv_manifest(descriptions):
     """Fallback TSV manifest when openpyxl is unavailable."""
     out_path = os.path.join(FINAL_DATA_DIR, "RNA_modifications_manifest.tsv")
     with open(out_path, "w", encoding="utf-8") as fh:
-        fh.write("Filename\tRNA Type\tModality\tTrack Type\tDescription\tHub BigBed URL\tPaper\n")
-        for row in _manifest_rows():
+        fh.write("Filename\tRNA Type\tModality\tDescription\tHub BigBed URL\tPaper\n")
+        for row in _manifest_rows(descriptions):
             fh.write("\t".join(row) + f"\t{PAPER_URL}\n")
     print(f"  Manifest (TSV) → {out_path}")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Step 6 — UCSC hub config
+# Step 5 — UCSC hub config
 # ══════════════════════════════════════════════════════════════════════════════
-
-MODALITY_COLOR = {
-    "Illumina": "0,120,180",
-    "ONT":      "180,80,0",
-    "MS":       "60,160,60",
-}
 
 
 def write_hub_txt():
@@ -864,8 +681,8 @@ def _bed_exists(rna_type, modality):
     )
 
 
-# Continuous range filters (score, coverage, frequency) for consensus and experiment tracks
-def build_filter_block(bed_path, indent=False):
+# Continuous range filters (score, coverage, frequency) for consensus tracks
+def build_filter_block(bed_path):
     """Build trackDb filter directives for score, coverage, and frequency (all continuous sliders)."""
     cov_max = max(1, int(math.ceil(get_field_max(bed_path, 9))))
     lines = [
@@ -885,8 +702,7 @@ def build_filter_block(bed_path, indent=False):
         "filterLabel.frequency Modification frequency (%)",
         "filterLabel.name Modification type",
     ]
-    prefix = "\t" if indent else ""
-    return "".join(f"{prefix}{ln}\n" for ln in lines)
+    return "".join(f"{ln}\n" for ln in lines)
 
 
 def write_trackdb(rna_type):
@@ -906,30 +722,18 @@ def write_trackdb(rna_type):
     stanzas  = []
 
     for priority, modality in enumerate(present, 1):
-        super_tid    = f"{safe_rna}_{modality}_super"
         consensus_tid = f"{safe_rna}_{modality}_consensus"
         bigbed_fname  = f"{rna_type}_{modality}.bigBed"
         html_ref      = f"{rna_type}_{modality}"
         bed_path      = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_{modality}.bed")
         mod_names     = get_mod_names(bed_path)
 
-        # ── SuperTrack ────────────────────────────────────────────────────────
-        stanzas.append(
-            f"track {super_tid}\n"
-            f"superTrack on show\n"
-            f"shortLabel {modality}\n"
-            f"longLabel {rna_type} — {modality}\n"
-            f"html {html_ref}\n"
-            f"priority {priority}\n"
-        )
-
-        # ── Consensus track ───────────────────────────────────────────────────
+        # ── Consensus track (flat, no sub-tracks) ───────────────────────────────
         if _bigbed_exists(rna_type, modality, cfg):
             stanzas.append(
                 f"track {consensus_tid}\n"
-                f"parent {super_tid}\n"
                 f"bigDataUrl {bigbed_fname}\n"
-                f"shortLabel {modality} consensus\n"
+                f"shortLabel {modality}\n"
                 f"longLabel {rna_type} {modality} modifications\n"
                 f"type bigBed 9 +\n"
                 f"itemRgb on\n"
@@ -937,63 +741,10 @@ def write_trackdb(rna_type):
                 + build_filter_block(bed_path)
                 + f"filterValues.name {mod_names}\n"
                   f"html {html_ref}\n"
-                  f"priority 1\n"
+                  f"priority {priority}\n"
             )
         else:
             stanzas.append(f"# TODO: {bigbed_fname} not yet generated\n")
-
-        # ── Experiments composite ─────────────────────────────────────────────
-        exp_tracks = _exp_bigbeds(rna_type, modality, cfg)
-        if not exp_tracks:
-            continue
-
-        exp_comp_tid = f"{safe_rna}_{modality}_experiments_composite"
-        exp_html_ref = f"{rna_type}_{modality}_experiments"
-
-        sg_entries = " ".join(
-            f"{safe_id(stem).lower()}={stem[:20].replace(' ', '_')}"
-            for stem, _ in exp_tracks
-        )
-
-        stanzas.append(
-            f"track {exp_comp_tid}\n"
-            f"compositeTrack on\n"
-            f"parent {super_tid}\n"
-            f"shortLabel {modality} experiments\n"
-            f"longLabel Individual {modality} Experiment Tracks\n"
-            f"type bigBed 9 +\n"
-            f"itemRgb on\n"
-            f"visibility hide\n"
-            f"subGroup1 sample Sample {sg_entries}\n"
-            f"dimensions dimX=sample\n"
-            f"filterComposite on\n"
-            f"html {exp_html_ref}\n"
-            f"priority 2\n"
-        )
-
-        for j, (stem, fname) in enumerate(exp_tracks, 1):
-            exp_tid   = f"{safe_rna}_{modality}_exp_{safe_id(stem)}"
-            sub_key   = safe_id(stem).lower()
-            rel_url   = f"experiments_{modality.lower()}/{fname}"
-            exp_bed   = os.path.join(FINAL_DATA_DIR, rna_type,
-                                     f"experiments_{modality.lower()}", f"{stem}.bed")
-            exp_mods  = get_mod_names(exp_bed)
-            short_lbl = stem[:24]
-
-            stanzas.append(
-                f"\ttrack {exp_tid}\n"
-                f"\tparent {exp_comp_tid}\n"
-                f"\tbigDataUrl {rel_url}\n"
-                f"\tsubGroups sample={sub_key}\n"
-                f"\tshortLabel {short_lbl}\n"
-                f"\tlongLabel {rna_type} {modality} — {stem}\n"
-                f"\ttype bigBed 9 +\n"
-                f"\titemRgb on\n"
-                + build_filter_block(exp_bed, indent=True)
-                + f"\tfilterValues.name {exp_mods}\n"
-                  f"\thtml {exp_html_ref}\n"
-                  f"\tpriority {j}\n"
-            )
 
     if rna_type == "polyA-RNA_hg38":
         vcf_html = os.path.join(HUB_DIR, cfg["hub_dir"], "SRS000090_variants.html")
@@ -1026,7 +777,7 @@ def write_trackdb(rna_type):
 
 
 def generate_hub_config():
-    print("\n── Step 6: Generating UCSC hub config ──")
+    print("\n── Step 5: Generating UCSC hub config ──")
     os.makedirs(HUB_DIR, exist_ok=True)
     write_hub_txt()
     write_genomes_txt()
@@ -1052,18 +803,16 @@ def generate_hub_config():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main():
+    descriptions = load_modality_descriptions()
     split_combined_files()
-    copy_experiment_files()
     convert_split_to_bigbed()
-    convert_experiments_to_bigbed()
-    generate_html_readmes()
-    generate_excel_manifest()
+    generate_html_readmes(descriptions)
+    generate_excel_manifest(descriptions)
     generate_hub_config()
     print("\nDone.")
     print(f"\nNext steps:")
     print(f"  1. Update PAPER_URL with actual DOI")
-    print(f"  2. Update FILE_DESCRIPTIONS with actual text")
-    print(f"  3. Push ucsc_hub/ to GitHub and load hub.txt in UCSC")
+    print(f"  2. Push ucsc_hub/ to GitHub and load hub.txt in UCSC")
 
 
 if __name__ == "__main__":
