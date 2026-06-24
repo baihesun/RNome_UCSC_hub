@@ -3,13 +3,16 @@ process_files.py -- data organization and UCSC hub generation
 
 Steps:
   1. Split combined BED files by RNA type → final_data/{RNA_type}/{RNA_type}_{Modality}.bed
-  2. Convert split BED files to bigBed
+  2. Convert split BED files to bigBed (per-platform), plus tiered consensus
+     TSVs (concensus_tsvs/) to bigBed (per RNA type, already split)
   3. Generate UCSC hub (ucsc_hub/) with hub.txt, genomes.txt, per-assembly trackDb
   4. Generate per-file HTML readmes (descriptions sourced from RNA_modifications_manifest.tsv)
   5. Generate Excel manifest
 
 Each modality (SRS, LRS, MS) is a single pre-merged consensus BED file —
-there are no per-experiment subtracks in this hub.
+there are no per-experiment subtracks in this hub. Each RNA type also gets a
+tiered cross-platform consensus track (concensus_tsvs/), colored by
+modification type with vivid/pale saturation for tier1/tier2 confidence.
 
 RNA type classification:
   chrom contains "rRNA"  →  rRNA
@@ -37,6 +40,24 @@ COMBINED_FILES = {
     "SRS": os.path.join(SOURCE_DIR, "Illumina_combined_polyARNA_tRNA_rRNA_rmchrY.bed"),
     "LRS": os.path.join(SOURCE_DIR, "ONT_polyARNA_rRNA_combined.filtered_rmchrY.bed"),
     "MS":  os.path.join(SOURCE_DIR, "MS_rRNA_tRNA.bed"),
+}
+
+# Tiered cross-platform consensus tracks: one pre-merged file per RNA type,
+# already split (no further splitting needed). Columns: chr/start/end/name/
+# tier/strand (+ 2 extra rRNA-only columns that are ignored — see
+# process_tiered_for_bigbed).
+TIERED_DIR = "concensus_tsvs"
+
+TIERED_FILES = {
+    "rRNA":           os.path.join(TIERED_DIR, "tiered_rRNA_only.tsv"),
+    "tRNA":           os.path.join(TIERED_DIR, "tiered_tRNA.tsv"),
+    "polyA-RNA_hg38": os.path.join(TIERED_DIR, "tiered_polyA.tsv"),
+}
+
+# Saturation (%) used by mod_to_rgb for each tier — tier1 is vivid, tier2 is pale.
+TIER_SATURATION = {
+    "tier1": 100,
+    "tier2": 30,
 }
 
 MANIFEST_PATH = "RNA_modifications_manifest.tsv"
@@ -143,15 +164,34 @@ lstring mod_id;             "Modification identifier"
 )
 """
 
+# ── AutoSQL schema for tiered consensus tracks (bed9 + tier) ──────────────────
+# itemRgb needs the full bed9 core (thickStart/thickEnd/itemRgb), not bed6.
+
+TIERED_AUTOSQL_SCHEMA = """\
+table tiered_mods
+"Tiered cross-platform consensus RNA modification sites"
+(
+string  chrom;      "Chromosome or RNA name"
+uint    chromStart; "Start position"
+uint    chromEnd;   "End position"
+string  name;       "Modification short name"
+uint    score;      "Display score (1000=tier1, 500=tier2)"
+char[1] strand;     "Strand (+ or -)"
+uint    thickStart; "Same as chromStart"
+uint    thickEnd;   "Same as chromEnd"
+uint    itemRgb;    "Display color (R,G,B) — hue by modification type, vivid=tier1/pale=tier2"
+string  tier;       "Confidence tier: tier1 = strongest cross-platform evidence, tier2 = supported by >=2 datasets"
+)
+"""
+
 # ── Track descriptions, sourced from the manifest ───────────────────────────────
 
-def load_modality_descriptions():
+def load_descriptions_from_manifest(file_map):
     """
-    Map modality (SRS/LRS/MS) → description text, read from MANIFEST_PATH.
+    Map dict key → description text, read from MANIFEST_PATH.
 
-    The manifest lists one row per combined source file (Filename, Description);
-    rows are matched back to COMBINED_FILES by basename. The same text is reused
-    for every RNA type split out of that modality's combined file.
+    The manifest lists one row per source file (Filename, Description); rows
+    are matched back to file_map's values by basename.
     """
     desc_by_filename = {}
     with open(MANIFEST_PATH, encoding="utf-8") as fh:
@@ -164,10 +204,10 @@ def load_modality_descriptions():
             desc_by_filename[fname.strip()] = desc.strip()
 
     descriptions = {}
-    for modality, src_path in COMBINED_FILES.items():
+    for key, src_path in file_map.items():
         fname = os.path.basename(src_path)
         if fname in desc_by_filename:
-            descriptions[modality] = desc_by_filename[fname]
+            descriptions[key] = desc_by_filename[fname]
         else:
             print(f"  [WARN] No manifest description found for {fname}")
     return descriptions
@@ -264,6 +304,22 @@ def get_mod_names(bed_path):
     except OSError:
         pass
     return ",".join(sorted(names))
+
+
+def get_field_values(bed_path, col_idx):
+    """Collect sorted unique values of column col_idx (0-based) from a BED file."""
+    values = set()
+    try:
+        with open(bed_path, encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("#") or not line.strip():
+                    continue
+                cols = line.split("\t")
+                if len(cols) > col_idx:
+                    values.add(cols[col_idx].strip())
+    except OSError:
+        pass
+    return ",".join(sorted(values))
 
 
 def get_field_max(bed_path, col_idx):
@@ -380,6 +436,50 @@ def process_bed_for_bigbed(src_path, dst_path, chrom_remap=None, valid_chroms=No
     return len(rows), skipped
 
 
+def process_tiered_for_bigbed(src_path, dst_path, chrom_remap=None, valid_chroms=None):
+    """
+    Normalise a tiered consensus TSV (header: chr/start/end/name/tier/strand,
+    plus optional trailing columns that are ignored) into a 10-col bed9+1 for
+    bedToBigBed:
+      - score derived from tier (tier1=1000, tier2=500)
+      - itemRgb: hue from mod name, saturation from TIER_SATURATION[tier]
+        (vivid for tier1, pale for tier2) — same hue table as the other tracks
+      - chrom_remap / valid_chroms: same semantics as process_bed_for_bigbed
+    """
+    rows = []
+    skipped = 0
+    with open(src_path, encoding="utf-8") as fh:
+        next(fh, None)  # header row
+        for line in fh:
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            cols = line.split("\t")
+            if len(cols) < 6:
+                continue
+            chrom, start, end, name, tier, strand = cols[:6]
+            if chrom_remap is not None and not chrom.startswith("chr"):
+                ucsc = chrom_remap.get(chrom)
+                if ucsc is None:
+                    skipped += 1
+                    continue  # unmapped scaffold — skip
+                chrom = ucsc
+            if valid_chroms is not None and chrom not in valid_chroms:
+                skipped += 1
+                continue
+            name = name.strip()
+            tier = tier.strip()
+            score = "1000" if tier == "tier1" else "500"
+            strand = strand if strand in ("+", "-") else "+"
+            item_rgb = mod_to_rgb(name, TIER_SATURATION.get(tier, 0))
+            rows.append([chrom, start, end, name, score, strand, start, end, item_rgb, tier])
+    rows.sort(key=lambda c: (c[0], int(c[1])))
+    with open(dst_path, "w", encoding="utf-8") as fh:
+        for cols in rows:
+            fh.write("\t".join(cols) + "\n")
+    return len(rows), skipped
+
+
 def write_autosql(out_dir):
     as_path = os.path.join(out_dir, "rna_mods.as")
     with open(as_path, "w") as fh:
@@ -387,10 +487,17 @@ def write_autosql(out_dir):
     return as_path
 
 
-def run_bedtobigbed(bed_path, sizes_path, as_path, bigbed_path):
+def write_tiered_autosql(out_dir):
+    as_path = os.path.join(out_dir, "tiered_mods.as")
+    with open(as_path, "w") as fh:
+        fh.write(TIERED_AUTOSQL_SCHEMA)
+    return as_path
+
+
+def run_bedtobigbed(bed_path, sizes_path, as_path, bigbed_path, bed_type="bed9+4"):
     cmd = [
         BEDTOBIGBED,
-        "-type=bed9+4",
+        f"-type={bed_type}",
         "-tab",
         f"-as={as_path}",
         bed_path,
@@ -404,10 +511,9 @@ def run_bedtobigbed(bed_path, sizes_path, as_path, bigbed_path):
     return True
 
 
-def convert_split_to_bigbed():
-    print("\n── Step 2: Converting split BED → bigBed ──")
-
-    # Build rRNA chrom sizes from FAI
+def _build_sizes_and_remap():
+    """Build per-RNA-type chrom-sizes paths and the hg38 Ensembl→UCSC remap, shared
+    by both the per-platform and tiered-consensus bigBed conversion steps."""
     rrna_sizes_path = os.path.join(HUB_DIR, "rrna", "hs_rRNA.chrom.sizes")
     if os.path.exists(RRNA_FAI):
         rrna_sizes = fai_to_sizes(RRNA_FAI)
@@ -417,7 +523,6 @@ def convert_split_to_bigbed():
         print(f"  [WARN] rRNA FAI not found ({RRNA_FAI}); rRNA bigBed skipped")
         rrna_sizes_path = None
 
-    # Build Ensembl→UCSC name map for hg38 scaffolds
     hg38_remap = None
     if os.path.exists(HG38_SIZES):
         hg38_remap = build_ensembl_to_ucsc_map(HG38_SIZES)
@@ -428,6 +533,13 @@ def convert_split_to_bigbed():
         "polyA-RNA_hg38":  HG38_SIZES if os.path.exists(HG38_SIZES) else None,
         "tRNA":            TRNA_SIZES,  # None until tRNA reference is provided
     }
+    return sizes_for, hg38_remap
+
+
+def convert_split_to_bigbed():
+    print("\n── Step 2: Converting split BED → bigBed ──")
+
+    sizes_for, hg38_remap = _build_sizes_and_remap()
 
     for rna_type in RNA_TYPES:
         cfg = ASSEMBLY_CFG[rna_type]
@@ -464,6 +576,42 @@ def convert_split_to_bigbed():
                 os.remove(fixed_bed)
 
 
+def convert_tiered_to_bigbed():
+    print("\n── Step 2b: Converting tiered consensus TSV → bigBed ──")
+
+    sizes_for, hg38_remap = _build_sizes_and_remap()
+
+    for rna_type, src_tsv in TIERED_FILES.items():
+        if not os.path.exists(src_tsv):
+            print(f"  [SKIP] not found: {src_tsv}")
+            continue
+
+        cfg        = ASSEMBLY_CFG[rna_type]
+        hub_dir    = os.path.join(HUB_DIR, cfg["hub_dir"])
+        sizes_path = sizes_for[rna_type]
+        if sizes_path is None:
+            print(f"  [TODO] No chrom sizes for {rna_type} — tiered bigBed skipped")
+            continue
+        os.makedirs(hub_dir, exist_ok=True)
+        as_path = write_tiered_autosql(hub_dir)
+
+        out_dir   = os.path.join(FINAL_DATA_DIR, rna_type)
+        os.makedirs(out_dir, exist_ok=True)
+        dst_bed   = os.path.join(out_dir, f"{rna_type}_consensus_tiered.bed")
+        bigbed_out = os.path.join(hub_dir, f"{rna_type}_consensus_tiered.bigBed")
+
+        remap = hg38_remap if rna_type == "polyA-RNA_hg38" else None
+        valid  = set(fai_to_sizes(sizes_path).keys()) if sizes_path else None
+        n, skipped = process_tiered_for_bigbed(src_tsv, dst_bed,
+                                                chrom_remap=remap,
+                                                valid_chroms=valid)
+        skip_str = f" ({skipped} skipped)" if skipped else ""
+        print(f"  Processed {n:>6,} rows{skip_str}: {os.path.basename(src_tsv)}")
+
+        if run_bedtobigbed(dst_bed, sizes_path, as_path, bigbed_out, bed_type="bed9+1"):
+            print(f"  bigBed → {bigbed_out}")
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Step 3 — HTML readmes
 # ══════════════════════════════════════════════════════════════════════════════
@@ -495,7 +643,7 @@ def write_html_readme(filename, description, out_dir):
     return html_path
 
 
-def generate_html_readmes(descriptions):
+def generate_html_readmes(descriptions, tiered_descriptions):
     print("\n── Step 3: Generating HTML readmes ──")
     for rna_type in RNA_TYPES:
         cfg     = ASSEMBLY_CFG[rna_type]
@@ -513,12 +661,21 @@ def generate_html_readmes(descriptions):
             html_path = write_html_readme(filename, desc, hub_dir)
             print(f"  HTML → {html_path}")
 
+        tiered_bed = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_consensus_tiered.bed")
+        if os.path.exists(tiered_bed):
+            desc = tiered_descriptions.get(
+                rna_type,
+                f"Tiered consensus RNA modification sites — {rna_type}. (PLACEHOLDER description)"
+            )
+            html_path = write_html_readme(f"{rna_type}_consensus_tiered.bed", desc, hub_dir)
+            print(f"  HTML → {html_path}")
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Step 4 — Excel manifest
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _manifest_rows(descriptions):
+def _manifest_rows(descriptions, tiered_descriptions):
     """Yield (filename, rna_type, modality, description, hub_url) for every consensus track."""
     for rna_type in RNA_TYPES:
         cfg = ASSEMBLY_CFG[rna_type]
@@ -530,21 +687,27 @@ def _manifest_rows(descriptions):
             desc    = descriptions.get(modality, f"RNA modification sites — {rna_type}, {modality}.")
             yield filename, rna_type, modality, desc, hub_url
 
+        tiered_filename = f"{rna_type}_consensus_tiered.bed"
+        if os.path.exists(os.path.join(FINAL_DATA_DIR, rna_type, tiered_filename)):
+            hub_url = f"{HUB_BASE_URL}/{HUB_DIR}/{cfg['hub_dir']}/{rna_type}_consensus_tiered.bigBed"
+            desc    = tiered_descriptions.get(rna_type, f"Tiered consensus RNA modification sites — {rna_type}.")
+            yield tiered_filename, rna_type, "Tiered", desc, hub_url
 
-def generate_excel_manifest(descriptions):
+
+def generate_excel_manifest(descriptions, tiered_descriptions):
     print("\n── Step 4: Generating Excel manifest ──")
     try:
         from openpyxl import Workbook
     except ImportError:
         print("  [SKIP] openpyxl not installed — run: pip install openpyxl")
-        _write_tsv_manifest(descriptions)
+        _write_tsv_manifest(descriptions, tiered_descriptions)
         return
 
     wb = Workbook()
     ws = wb.active
     ws.title = "Manifest"
     ws.append(["Filename", "RNA Type", "Modality", "Description", "Hub BigBed URL", "Paper"])
-    for row in _manifest_rows(descriptions):
+    for row in _manifest_rows(descriptions, tiered_descriptions):
         ws.append([*row, PAPER_URL])
 
     out_path = os.path.join(FINAL_DATA_DIR, "RNA_modifications_manifest.xlsx")
@@ -552,12 +715,12 @@ def generate_excel_manifest(descriptions):
     print(f"  Manifest → {out_path}")
 
 
-def _write_tsv_manifest(descriptions):
+def _write_tsv_manifest(descriptions, tiered_descriptions):
     """Fallback TSV manifest when openpyxl is unavailable."""
     out_path = os.path.join(FINAL_DATA_DIR, "RNA_modifications_manifest.tsv")
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write("Filename\tRNA Type\tModality\tDescription\tHub BigBed URL\tPaper\n")
-        for row in _manifest_rows(descriptions):
+        for row in _manifest_rows(descriptions, tiered_descriptions):
             fh.write("\t".join(row) + f"\t{PAPER_URL}\n")
     print(f"  Manifest (TSV) → {out_path}")
 
@@ -683,6 +846,18 @@ def _bed_exists(rna_type, modality):
     )
 
 
+def _tiered_bed_exists(rna_type):
+    return os.path.exists(
+        os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_consensus_tiered.bed")
+    )
+
+
+def _tiered_bigbed_exists(rna_type, cfg):
+    return os.path.exists(
+        os.path.join(HUB_DIR, cfg["hub_dir"], f"{rna_type}_consensus_tiered.bigBed")
+    )
+
+
 # Continuous range filters (score, coverage, frequency) for consensus tracks
 def build_filter_block(bed_path):
     """Build trackDb filter directives for score, coverage, and frequency (all continuous sliders)."""
@@ -713,8 +888,9 @@ def write_trackdb(rna_type):
     os.makedirs(hub_dir, exist_ok=True)
     path    = os.path.join(hub_dir, "trackDb.txt")
 
-    present = [m for m in MODALITIES if _bed_exists(rna_type, m)]
-    if not present:
+    present     = [m for m in MODALITIES if _bed_exists(rna_type, m)]
+    has_tiered  = _tiered_bed_exists(rna_type)
+    if not present and not has_tiered:
         with open(path, "w") as fh:
             fh.write(f"# No data available for {rna_type}\n")
         print(f"  trackDb (empty) → {path}")
@@ -747,6 +923,33 @@ def write_trackdb(rna_type):
             )
         else:
             stanzas.append(f"# TODO: {bigbed_fname} not yet generated\n")
+
+    # ── Tiered cross-platform consensus track (vivid=tier1, pale=tier2) ─────────
+    if has_tiered:
+        tiered_tid  = f"{safe_rna}_consensus_tiered"
+        tiered_bed  = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_consensus_tiered.bed")
+        tiered_html = f"{rna_type}_consensus_tiered"
+        mod_names   = get_mod_names(tiered_bed)
+        tier_values = get_field_values(tiered_bed, 9)
+
+        if _tiered_bigbed_exists(rna_type, cfg):
+            stanzas.append(
+                f"track {tiered_tid}\n"
+                f"bigDataUrl {rna_type}_consensus_tiered.bigBed\n"
+                f"shortLabel Tiered consensus\n"
+                f"longLabel {rna_type} tiered cross-platform consensus modifications\n"
+                f"type bigBed 9 +\n"
+                f"itemRgb on\n"
+                f"visibility pack\n"
+                f"filterValues.name {mod_names}\n"
+                f"filterLabel.name Modification type\n"
+                f"filterValues.tier {tier_values}\n"
+                f"filterLabel.tier Confidence tier\n"
+                f"html {tiered_html}\n"
+                f"priority {len(present) + 1}\n"
+            )
+        else:
+            stanzas.append(f"# TODO: {rna_type}_consensus_tiered.bigBed not yet generated\n")
 
     if rna_type == "polyA-RNA_hg38":
         vcf_html = os.path.join(HUB_DIR, cfg["hub_dir"], "NA12878_variants.html")
@@ -805,11 +1008,13 @@ def generate_hub_config():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main():
-    descriptions = load_modality_descriptions()
+    descriptions = load_descriptions_from_manifest(COMBINED_FILES)
+    tiered_descriptions = load_descriptions_from_manifest(TIERED_FILES)
     split_combined_files()
     convert_split_to_bigbed()
-    generate_html_readmes(descriptions)
-    generate_excel_manifest(descriptions)
+    convert_tiered_to_bigbed()
+    generate_html_readmes(descriptions, tiered_descriptions)
+    generate_excel_manifest(descriptions, tiered_descriptions)
     generate_hub_config()
     print("\nDone.")
     print(f"\nNext steps:")

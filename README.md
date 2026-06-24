@@ -6,8 +6,11 @@ RNA (tRNA). Modifications are detected by three modalities — short-read
 sequencing (SRS, Illumina), long-read sequencing (LRS, Oxford Nanopore/ONT),
 and mass spectrometry (MS) — each provided as a single pre-merged,
 genome-mapped consensus BED file. Each modality is
-rendered as one flat track per RNA type (no per-experiment subtracks); track
-descriptions are sourced directly from `RNA_modifications_manifest.tsv`.
+rendered as one flat track per RNA type (no per-experiment subtracks). Each
+RNA type also gets a tiered, cross-platform consensus track (tier1/tier2
+confidence), colored by modification type with vivid (tier1) vs. pale (tier2)
+saturation. Track descriptions are sourced directly from
+`RNA_modifications_manifest.tsv`.
 
 ---
 
@@ -21,6 +24,11 @@ RNome_dataviz_repo/
 │   ├── ONT_polyARNA_rRNA_combined.filtered_rmchrY.bed
 │   └── MS_rRNA_tRNA.bed
 │
+├── concensus_tsvs/                         # Pipeline input: 3 tiered cross-platform consensus TSVs
+│   ├── tiered_polyA.tsv                       # chr/start/end/name/tier/strand
+│   ├── tiered_rRNA_only.tsv                   # + in_ref/ref_mod_type (ignored — not loaded)
+│   └── tiered_tRNA.tsv
+│
 ├── reference/                              # Reference sequences & annotations
 │   ├── hs_rRNAs_NR_046235.fa(.fai)            # Human rRNA reference (18S/28S/5.8S/5S)
 │   ├── Step3_hg38_Homo_sapiens_47seq...fa     # tRNA reference sequences
@@ -29,11 +37,11 @@ RNome_dataviz_repo/
 ├── final_data/                             # Pipeline output, organized by RNA type
 │   ├── RNA_modifications_manifest.xlsx        # Generated manifest of all tracks + hub URLs
 │   ├── polyA-RNA_hg38/
-│   │   └── polyA-RNA_hg38_{SRS,LRS}.bed
+│   │   └── polyA-RNA_hg38_{SRS,LRS,consensus_tiered}.bed
 │   ├── rRNA/
-│   │   └── rRNA_{SRS,LRS,MS}.bed
+│   │   └── rRNA_{SRS,LRS,MS,consensus_tiered}.bed
 │   └── tRNA/
-│       └── tRNA_{SRS,MS}.bed
+│       └── tRNA_{SRS,MS,consensus_tiered}.bed
 │
 ├── scripts/
 │   ├── pipeline.py                         # End-to-end hub generation (see below)
@@ -75,8 +83,9 @@ chmod +x bedToBigBed faToTwoBit
 
 ### Run the pipeline (`pipeline.py`)
 
-The 3 files in `final_bedRmods/` (SRS/Illumina, LRS/ONT, MS) are already in
-genomic coordinates. From the repo root:
+The 3 files in `final_bedRmods/` (SRS/Illumina, LRS/ONT, MS) and the 3 tiered
+consensus files in `concensus_tsvs/` are already in genomic coordinates and
+already split by RNA type (for the tiered files). From the repo root:
 
 ```bash
 python scripts/pipeline.py
@@ -89,17 +98,22 @@ This will:
 2. Normalize each split BED file for `bedToBigBed`: clamp scores to 0–1000,
    recolor by modification type (hue) × frequency (saturation), remap
    Ensembl scaffold names to UCSC names where needed, and convert to bigBed
-   (`bedToBigBed -type=bed9+4 -as=rna_mods.as`)
-3. Generate one HTML description per `{RNA_type}_{Modality}` track, using the
-   matching modality's description text from `RNA_modifications_manifest.tsv`
+   (`bedToBigBed -type=bed9+4 -as=rna_mods.as`). Separately, normalize each
+   `concensus_tsvs/tiered_*.tsv` (score from tier, itemRgb = modification hue
+   × tier1/tier2 saturation) and convert to bigBed
+   (`bedToBigBed -type=bed9+1 -as=tiered_mods.as`)
+3. Generate one HTML description per track (per-platform and tiered), using
+   the matching file's description text from `RNA_modifications_manifest.tsv`
 4. Generate `final_data/RNA_modifications_manifest.xlsx` (or `.tsv` if
    `openpyxl` is unavailable) listing every track and its hub bigBed URL
 5. Generate the UCSC hub config (`hub.txt`, `genomes.txt`, per-assembly
-   `trackDb.txt`) — one flat track per RNA type/modality, each with
-   score / coverage / frequency / modification-type filters
+   `trackDb.txt`) — one flat track per RNA type/modality plus one tiered
+   consensus track per RNA type, with modification-type filters (and
+   score/coverage/frequency filters on the per-platform tracks only)
 
 To change a track's description, edit `RNA_modifications_manifest.tsv`
-(matched to `COMBINED_FILES` by filename) and re-run the pipeline.
+(matched to `COMBINED_FILES`/`TIERED_FILES` by filename) and re-run the
+pipeline.
 
 ### One-time setup — custom assembly sequences (.2bit)
 
@@ -147,6 +161,14 @@ Each present modality is a single flat consensus track
 colored and filterable by modification type, score, coverage, and frequency.
 There are no per-experiment subtracks in this hub.
 
+Each RNA type also gets one **tiered consensus track**
+(`{RNA_type}_consensus_tiered.bigBed`) merging evidence across platforms into
+two confidence tiers. These are colored by modification type like the other
+tracks, but saturation encodes tier instead of frequency: tier1 (strongest
+cross-platform evidence) is vivid, tier2 (supported by ≥2 datasets) is pale.
+Filterable by modification type and tier; there's no coverage/frequency data
+for these sites, so no score/coverage/frequency filters are shown.
+
 The hg38 assembly additionally carries an externally hosted track,
 **NA12878 variants** (WGS merged variant calls from two callers), streamed
 from `https://storage.googleapis.com/srs000090-wgs/`.
@@ -173,11 +195,32 @@ Clicking a site in UCSC shows all 13 fields in a popup.
 
 ---
 
+## Tiered consensus BED columns (bed9+1, `tiered_mods.as`)
+
+| Column | Field | Description |
+|---|---|---|
+| 1 | chrom | Chromosome or RNA molecule |
+| 2–3 | chromStart / chromEnd | Position of the modified site (0-based, half-open) |
+| 4 | name | Modification type |
+| 5 | score | Display score: `1000` for tier1, `500` for tier2 (not a detection score) |
+| 6 | strand | `+` or `-` |
+| 7–8 | thickStart / thickEnd | Same as start/end (display only) |
+| 9 | itemRgb | Display color — hue per modification type, vivid (tier1) vs. pale (tier2) |
+| 10 | tier | `tier1` or `tier2` |
+
+Source TSVs only have `chr/start/end/name/tier/strand`; `tiered_rRNA_only.tsv`
+additionally has `in_ref`/`ref_mod_type` columns that are not loaded into the
+bigBed.
+
+---
+
 ## Color scheme
 
-Each modification type has a fixed hue. Saturation encodes stoichiometry:
-vivid = high frequency, pale/gray = low frequency. Modification types not in
-this table are rendered in gray (`#808080`).
+Each modification type has a fixed hue. On the per-platform tracks,
+saturation encodes stoichiometry: vivid = high frequency, pale/gray = low
+frequency. On the tiered consensus tracks, saturation instead encodes
+confidence tier: vivid = tier1, pale = tier2. Modification types not in this
+table are rendered in gray (`#808080`).
 
 | Modification | Type | Hex |
 |---|---|---|
