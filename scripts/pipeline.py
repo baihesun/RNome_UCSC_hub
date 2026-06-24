@@ -17,7 +17,7 @@ modification type with vivid/pale saturation for tier1/tier2 confidence.
 RNA type classification:
   chrom contains "rRNA"  →  rRNA
   chrom contains "tRNA"  →  tRNA
-  else                   →  polyA-RNA_hg38
+  else                   →  polyA_RNA_hg38
 
 Run from repo root:
   python scripts/pipeline.py
@@ -51,7 +51,7 @@ TIERED_DIR = "concensus_tsvs"
 TIERED_FILES = {
     "rRNA":           os.path.join(TIERED_DIR, "tiered_rRNA_only.tsv"),
     "tRNA":           os.path.join(TIERED_DIR, "tiered_tRNA.tsv"),
-    "polyA-RNA_hg38": os.path.join(TIERED_DIR, "tiered_polyA.tsv"),
+    "polyA_RNA_hg38": os.path.join(TIERED_DIR, "tiered_polyA.tsv"),
 }
 
 # Saturation (%) used by mod_to_rgb for each tier — tier1 is vivid, tier2 is pale.
@@ -107,7 +107,7 @@ COLOR_CODE = {
 }
 DEFAULT_COLOR = "#808080"
 
-RNA_TYPES  = ["polyA-RNA_hg38", "tRNA", "rRNA"]
+RNA_TYPES  = ["polyA_RNA_hg38", "tRNA", "rRNA"]
 MODALITIES = ["SRS", "LRS", "MS"]
 
 # ── Assembly config ────────────────────────────────────────────────────────────
@@ -122,13 +122,13 @@ ASSEMBLY_CFG = {
         "label":      "rRNA",
         "organism":   "Homo sapiens rRNA",
     },
-    "polyA-RNA_hg38": {
+    "polyA_RNA_hg38": {
         "ucsc_name":  "hg38",
         "hub_dir":    "hg38_polyA-RNA",
         "2bit_src":   None,          # standard UCSC assembly
         "2bit_dest":  None,
         "sizes":      HG38_SIZES,
-        "label":      "poly-A RNA",
+        "label":      "poly(A) RNA",
         "organism":   "Homo sapiens",
     },
     "tRNA": {
@@ -278,7 +278,7 @@ def classify_rna_type(chrom):
         return "rRNA"
     if "tRNA" in chrom:
         return "tRNA"
-    return "polyA-RNA_hg38"
+    return "polyA_RNA_hg38"
 
 
 def safe_id(s):
@@ -530,7 +530,7 @@ def _build_sizes_and_remap():
 
     sizes_for = {
         "rRNA":            rrna_sizes_path,
-        "polyA-RNA_hg38":  HG38_SIZES if os.path.exists(HG38_SIZES) else None,
+        "polyA_RNA_hg38":  HG38_SIZES if os.path.exists(HG38_SIZES) else None,
         "tRNA":            TRNA_SIZES,  # None until tRNA reference is provided
     }
     return sizes_for, hg38_remap
@@ -561,7 +561,7 @@ def convert_split_to_bigbed():
             if not os.path.exists(src_bed):
                 continue
 
-            remap = hg38_remap if rna_type == "polyA-RNA_hg38" else None
+            remap = hg38_remap if rna_type == "polyA_RNA_hg38" else None
             valid  = set(fai_to_sizes(sizes_path).keys()) if sizes_path else None
             n, skipped = process_bed_for_bigbed(src_bed, fixed_bed,
                                                 chrom_remap=remap,
@@ -600,7 +600,7 @@ def convert_tiered_to_bigbed():
         dst_bed   = os.path.join(out_dir, f"{rna_type}_consensus_tiered.bed")
         bigbed_out = os.path.join(hub_dir, f"{rna_type}_consensus_tiered.bigBed")
 
-        remap = hg38_remap if rna_type == "polyA-RNA_hg38" else None
+        remap = hg38_remap if rna_type == "polyA_RNA_hg38" else None
         valid  = set(fai_to_sizes(sizes_path).keys()) if sizes_path else None
         n, skipped = process_tiered_for_bigbed(src_tsv, dst_bed,
                                                 chrom_remap=remap,
@@ -616,18 +616,19 @@ def convert_tiered_to_bigbed():
 # Step 3 — HTML readmes
 # ══════════════════════════════════════════════════════════════════════════════
 
-def write_html_readme(filename, description, out_dir):
+def write_html_readme(filename, description, out_dir, title=None):
     stem      = os.path.splitext(filename)[0]
     html_path = os.path.join(out_dir, f"{stem}.html")
+    title     = title or stem
     content = f"""\
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>{stem}</title>
+  <title>{title}</title>
 </head>
 <body>
-<h2>{stem}</h2>
+<h2>{title}</h2>
 <p>{description}</p>
 
 <p>
@@ -647,6 +648,7 @@ def generate_html_readmes(descriptions, tiered_descriptions):
     print("\n── Step 3: Generating HTML readmes ──")
     for rna_type in RNA_TYPES:
         cfg     = ASSEMBLY_CFG[rna_type]
+        label   = cfg["label"]
         hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"])
         os.makedirs(hub_dir, exist_ok=True)
         for modality in MODALITIES:
@@ -656,18 +658,21 @@ def generate_html_readmes(descriptions, tiered_descriptions):
                 continue
             desc = descriptions.get(
                 modality,
-                f"RNA modification sites — {rna_type}, {modality}. (PLACEHOLDER description)"
+                f"RNA modification sites — {label}, {modality}. (PLACEHOLDER description)"
             )
-            html_path = write_html_readme(filename, desc, hub_dir)
+            html_path = write_html_readme(filename, desc, hub_dir, title=f"{label} {modality}")
             print(f"  HTML → {html_path}")
 
         tiered_bed = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_consensus_tiered.bed")
         if os.path.exists(tiered_bed):
             desc = tiered_descriptions.get(
                 rna_type,
-                f"Tiered consensus RNA modification sites — {rna_type}. (PLACEHOLDER description)"
+                f"Tiered consensus RNA modification sites — {label}. (PLACEHOLDER description)"
             )
-            html_path = write_html_readme(f"{rna_type}_consensus_tiered.bed", desc, hub_dir)
+            html_path = write_html_readme(
+                f"{rna_type}_consensus_tiered.bed", desc, hub_dir,
+                title=f"{label} tiered consensus"
+            )
             print(f"  HTML → {html_path}")
 
 
@@ -684,13 +689,13 @@ def _manifest_rows(descriptions, tiered_descriptions):
             if not os.path.exists(os.path.join(FINAL_DATA_DIR, rna_type, filename)):
                 continue
             hub_url = f"{HUB_BASE_URL}/{HUB_DIR}/{cfg['hub_dir']}/{rna_type}_{modality}.bigBed"
-            desc    = descriptions.get(modality, f"RNA modification sites — {rna_type}, {modality}.")
+            desc    = descriptions.get(modality, f"RNA modification sites — {cfg['label']}, {modality}.")
             yield filename, rna_type, modality, desc, hub_url
 
         tiered_filename = f"{rna_type}_consensus_tiered.bed"
         if os.path.exists(os.path.join(FINAL_DATA_DIR, rna_type, tiered_filename)):
             hub_url = f"{HUB_BASE_URL}/{HUB_DIR}/{cfg['hub_dir']}/{rna_type}_consensus_tiered.bigBed"
-            desc    = tiered_descriptions.get(rna_type, f"Tiered consensus RNA modification sites — {rna_type}.")
+            desc    = tiered_descriptions.get(rna_type, f"Tiered consensus RNA modification sites — {cfg['label']}.")
             yield tiered_filename, rna_type, "Tiered", desc, hub_url
 
 
@@ -743,7 +748,7 @@ def write_hub_txt():
 <p>
   A comprehensive map of RNA modifications across the human transcriptome,
   integrating short-read sequencing (SRS), long-read sequencing (LRS), and mass spectrometry (MS) data
-  for poly-A RNA, ribosomal RNA (rRNA), and transfer RNA (tRNA).
+  for poly(A) RNA, ribosomal RNA (rRNA), and transfer RNA (tRNA).
 </p>
 <p><strong>Reference:</strong> PLACEHOLDER_DOI</p>
 </body>
@@ -792,14 +797,14 @@ def write_genomes_txt():
         label     = cfg["label"]
         organism  = cfg["organism"]
 
-        if rna_type == "polyA-RNA_hg38":
+        if rna_type == "polyA_RNA_hg38":
             # Standard UCSC assembly — no custom 2bit needed
             block = (
                 f"genome {ucsc_name}\n"
                 f"trackDb {hub_dir}/trackDb.txt\n"
                 f"defaultPos chr21:8400001-8500000\n"
                 f"organism \"Homo sapiens\"\n"
-                f"description \"Human RNA modifications (poly-A RNA, hg38)\"\n"
+                f"description \"Human RNA modifications ({label}, hg38)\"\n"
             )
         elif rna_type == "tRNA":
             _write_assembly_html(hub_dir, label)
@@ -897,34 +902,11 @@ def write_trackdb(rna_type):
         return
 
     safe_rna = safe_id(rna_type)
+    label    = cfg["label"]
     stanzas  = []
 
-    for priority, modality in enumerate(present, 1):
-        consensus_tid = f"{safe_rna}_{modality}_consensus"
-        bigbed_fname  = f"{rna_type}_{modality}.bigBed"
-        html_ref      = f"{rna_type}_{modality}"
-        bed_path      = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_{modality}.bed")
-        mod_names     = get_mod_names(bed_path)
-
-        # ── Consensus track (flat, no sub-tracks) ───────────────────────────────
-        if _bigbed_exists(rna_type, modality, cfg):
-            stanzas.append(
-                f"track {consensus_tid}\n"
-                f"bigDataUrl {bigbed_fname}\n"
-                f"shortLabel {modality}\n"
-                f"longLabel {rna_type} {modality} modifications\n"
-                f"type bigBed 9 +\n"
-                f"itemRgb on\n"
-                f"visibility pack\n"
-                + build_filter_block(bed_path)
-                + f"filterValues.name {mod_names}\n"
-                  f"html {html_ref}\n"
-                  f"priority {priority}\n"
-            )
-        else:
-            stanzas.append(f"# TODO: {bigbed_fname} not yet generated\n")
-
     # ── Tiered cross-platform consensus track (vivid=tier1, pale=tier2) ─────────
+    # Listed first / highest priority so it appears at the top of the track list.
     if has_tiered:
         tiered_tid  = f"{safe_rna}_consensus_tiered"
         tiered_bed  = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_consensus_tiered.bed")
@@ -937,7 +919,7 @@ def write_trackdb(rna_type):
                 f"track {tiered_tid}\n"
                 f"bigDataUrl {rna_type}_consensus_tiered.bigBed\n"
                 f"shortLabel Tiered consensus\n"
-                f"longLabel {rna_type} tiered cross-platform consensus modifications\n"
+                f"longLabel {label} tiered cross-platform consensus modifications\n"
                 f"type bigBed 9 +\n"
                 f"itemRgb on\n"
                 f"visibility pack\n"
@@ -946,12 +928,37 @@ def write_trackdb(rna_type):
                 f"filterValues.tier {tier_values}\n"
                 f"filterLabel.tier Confidence tier\n"
                 f"html {tiered_html}\n"
-                f"priority {len(present) + 1}\n"
+                f"priority 1\n"
             )
         else:
             stanzas.append(f"# TODO: {rna_type}_consensus_tiered.bigBed not yet generated\n")
 
-    if rna_type == "polyA-RNA_hg38":
+    for priority, modality in enumerate(present, 2 if has_tiered else 1):
+        consensus_tid = f"{safe_rna}_{modality}_consensus"
+        bigbed_fname  = f"{rna_type}_{modality}.bigBed"
+        html_ref      = f"{rna_type}_{modality}"
+        bed_path      = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_{modality}.bed")
+        mod_names     = get_mod_names(bed_path)
+
+        # ── Consensus track (flat, no sub-tracks) ───────────────────────────────
+        if _bigbed_exists(rna_type, modality, cfg):
+            stanzas.append(
+                f"track {consensus_tid}\n"
+                f"bigDataUrl {bigbed_fname}\n"
+                f"shortLabel {modality}\n"
+                f"longLabel {label} {modality} modifications\n"
+                f"type bigBed 9 +\n"
+                f"itemRgb on\n"
+                f"visibility pack\n"
+                + build_filter_block(bed_path)
+                + f"filterValues.name {mod_names}\n"
+                  f"html {html_ref}\n"
+                  f"priority {priority}\n"
+            )
+        else:
+            stanzas.append(f"# TODO: {bigbed_fname} not yet generated\n")
+
+    if rna_type == "polyA_RNA_hg38":
         vcf_html = os.path.join(HUB_DIR, cfg["hub_dir"], "NA12878_variants.html")
         if not os.path.exists(vcf_html):
             with open(vcf_html, "w") as fh:

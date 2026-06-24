@@ -36,8 +36,8 @@ RNome_dataviz_repo/
 │
 ├── final_data/                             # Pipeline output, organized by RNA type
 │   ├── RNA_modifications_manifest.xlsx        # Generated manifest of all tracks + hub URLs
-│   ├── polyA-RNA_hg38/
-│   │   └── polyA-RNA_hg38_{SRS,LRS,consensus_tiered}.bed
+│   ├── polyA_RNA_hg38/
+│   │   └── polyA_RNA_hg38_{SRS,LRS,consensus_tiered}.bed
 │   ├── rRNA/
 │   │   └── rRNA_{SRS,LRS,MS,consensus_tiered}.bed
 │   └── tRNA/
@@ -94,7 +94,7 @@ python scripts/pipeline.py
 This will:
 
 1. Split each combined SRS/LRS/MS BED file by RNA type (`rRNA`, `tRNA`,
-   `polyA-RNA_hg38`) into `final_data/{RNA_type}/{RNA_type}_{Modality}.bed`
+   `polyA_RNA_hg38`) into `final_data/{RNA_type}/{RNA_type}_{Modality}.bed`
 2. Normalize each split BED file for `bedToBigBed`: clamp scores to 0–1000,
    recolor by modification type (hue) × frequency (saturation), remap
    Ensembl scaffold names to UCSC names where needed, and convert to bigBed

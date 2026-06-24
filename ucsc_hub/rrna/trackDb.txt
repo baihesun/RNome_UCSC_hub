@@ -1,3 +1,17 @@
+track rRNA_consensus_tiered
+bigDataUrl rRNA_consensus_tiered.bigBed
+shortLabel Tiered consensus
+longLabel rRNA tiered cross-platform consensus modifications
+type bigBed 9 +
+itemRgb on
+visibility pack
+filterValues.name Am,Cm,Gm,Um,Y,m5C,m6A
+filterLabel.name Modification type
+filterValues.tier tier1,tier2
+filterLabel.tier Confidence tier
+html rRNA_consensus_tiered
+priority 1
+
 track rRNA_SRS_consensus
 bigDataUrl rRNA_SRS.bigBed
 shortLabel SRS
@@ -22,7 +36,7 @@ filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,Um,Y,m1A,m3C,m5C,m6A,m7G
 html rRNA_SRS
-priority 1
+priority 2
 
 track rRNA_LRS_consensus
 bigDataUrl rRNA_LRS.bigBed
@@ -48,7 +62,7 @@ filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,I,Um,Y,m5C,m6A
 html rRNA_LRS
-priority 2
+priority 3
 
 track rRNA_MS_consensus
 bigDataUrl rRNA_MS.bigBed
@@ -74,19 +88,5 @@ filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name ac4C,m2,2,7G,m6,6A,mxA,mxC,mxG,mxU
 html rRNA_MS
-priority 3
-
-track rRNA_consensus_tiered
-bigDataUrl rRNA_consensus_tiered.bigBed
-shortLabel Tiered consensus
-longLabel rRNA tiered cross-platform consensus modifications
-type bigBed 9 +
-itemRgb on
-visibility pack
-filterValues.name Am,Cm,Gm,Um,Y,m5C,m6A
-filterLabel.name Modification type
-filterValues.tier tier1,tier2
-filterLabel.tier Confidence tier
-html rRNA_consensus_tiered
 priority 4
 

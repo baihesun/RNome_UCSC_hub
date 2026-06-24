@@ -1,7 +1,21 @@
+track polyA_RNA_hg38_consensus_tiered
+bigDataUrl polyA_RNA_hg38_consensus_tiered.bigBed
+shortLabel Tiered consensus
+longLabel poly(A) RNA tiered cross-platform consensus modifications
+type bigBed 9 +
+itemRgb on
+visibility pack
+filterValues.name I,Y,m5C,m6A
+filterLabel.name Modification type
+filterValues.tier tier1,tier2
+filterLabel.tier Confidence tier
+html polyA_RNA_hg38_consensus_tiered
+priority 1
+
 track polyA_RNA_hg38_SRS_consensus
-bigDataUrl polyA-RNA_hg38_SRS.bigBed
+bigDataUrl polyA_RNA_hg38_SRS.bigBed
 shortLabel SRS
-longLabel polyA-RNA_hg38 SRS modifications
+longLabel poly(A) RNA SRS modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -21,13 +35,13 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name I,Y,m5C,m6A
-html polyA-RNA_hg38_SRS
-priority 1
+html polyA_RNA_hg38_SRS
+priority 2
 
 track polyA_RNA_hg38_LRS_consensus
-bigDataUrl polyA-RNA_hg38_LRS.bigBed
+bigDataUrl polyA_RNA_hg38_LRS.bigBed
 shortLabel LRS
-longLabel polyA-RNA_hg38 LRS modifications
+longLabel poly(A) RNA LRS modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -47,21 +61,7 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,I,Um,Y,m5C,m6A
-html polyA-RNA_hg38_LRS
-priority 2
-
-track polyA_RNA_hg38_consensus_tiered
-bigDataUrl polyA-RNA_hg38_consensus_tiered.bigBed
-shortLabel Tiered consensus
-longLabel polyA-RNA_hg38 tiered cross-platform consensus modifications
-type bigBed 9 +
-itemRgb on
-visibility pack
-filterValues.name I,Y,m5C,m6A
-filterLabel.name Modification type
-filterValues.tier tier1,tier2
-filterLabel.tier Confidence tier
-html polyA-RNA_hg38_consensus_tiered
+html polyA_RNA_hg38_LRS
 priority 3
 
 track NA12878_variants

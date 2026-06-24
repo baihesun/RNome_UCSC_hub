@@ -2,7 +2,7 @@ genome hg38
 trackDb hg38_polyA-RNA/trackDb.txt
 defaultPos chr21:8400001-8500000
 organism "Homo sapiens"
-description "Human RNA modifications (poly-A RNA, hg38)"
+description "Human RNA modifications (poly(A) RNA, hg38)"
 
 genome hs_tRNA
 trackDb trna/trackDb.txt
