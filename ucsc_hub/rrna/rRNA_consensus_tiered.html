@@ -7,6 +7,36 @@
 <body>
 <h2>rRNA tiered consensus</h2>
 <p>This concensus track represents RNA modification sites aggregated from sites detected by short-read sequencing (Illumina), long-read sequencing (ONT), and mass spectrometry technologies. The sites are grouped into two confidence tiers: tier 1 reflects the strongest evidence from optimized cross-platform comparisons, and tier 2 comes from agreement between two or more raw datasets. Together they provide a ranked reference atlas of RNA modifications, with higher tiers representing sites supported by more independent lines of evidence.</p>
+<h3>Display Conventions and Configuration</h3>
+<p>
+  Items are colored by modification type; within each modification type, color saturation encodes confidence tier — tier1 sites (strongest cross-platform evidence) are vivid, tier2 sites (supported by ≥2 datasets) are pale.
+  Modification types not shown in the color key below are rendered in gray (#808080).
+</p>
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Modification</th><th>Color</th><th>Hex</th></tr>
+<tr><td>m6A</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#003f5c;border:1px solid #999;"></span></td><td>#003f5c</td></tr>
+<tr><td>Am</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#1464a0;border:1px solid #999;"></span></td><td>#1464a0</td></tr>
+<tr><td>Ino / I</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#0e8fd4;border:1px solid #999;"></span></td><td>#0e8fd4</td></tr>
+<tr><td>m1A</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#00b4d8;border:1px solid #999;"></span></td><td>#00b4d8</td></tr>
+<tr><td>m66A</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#00d4b4;border:1px solid #999;"></span></td><td>#00d4b4</td></tr>
+<tr><td>m1acp3Y</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#00c875;border:1px solid #999;"></span></td><td>#00c875</td></tr>
+<tr><td>Y</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#90be6d;border:1px solid #999;"></span></td><td>#90be6d</td></tr>
+<tr><td>Ym</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#c9b84c;border:1px solid #999;"></span></td><td>#c9b84c</td></tr>
+<tr><td>Um</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#ffa600;border:1px solid #999;"></span></td><td>#ffa600</td></tr>
+<tr><td>m3U</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#ff7c43;border:1px solid #999;"></span></td><td>#ff7c43</td></tr>
+<tr><td>Gm</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#ff6361;border:1px solid #999;"></span></td><td>#ff6361</td></tr>
+<tr><td>m7G</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#dd7371;border:1px solid #999;"></span></td><td>#dd7371</td></tr>
+<tr><td>Cm</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#ef476f;border:1px solid #999;"></span></td><td>#ef476f</td></tr>
+<tr><td>m5C</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#d45087;border:1px solid #999;"></span></td><td>#d45087</td></tr>
+<tr><td>ac4C</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#7b2d8b;border:1px solid #999;"></span></td><td>#7b2d8b</td></tr>
+</table>
+<p>
+  This track can be filtered using the controls on the track description page (click the track name in the Genome Browser, then scroll down):
+</p>
+<ul>
+<li><strong>Modification type</strong> — show only selected modification types</li>
+<li><strong>Confidence tier</strong> — show only tier1 (strongest cross-platform evidence) and/or tier2 (supported by ≥2 datasets) sites</li>
+</ul>
 
 <p>
   <strong>Reference:</strong>

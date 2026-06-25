@@ -624,7 +624,82 @@ def convert_tiered_to_bigbed():
 # Step 3 — HTML readmes
 # ══════════════════════════════════════════════════════════════════════════════
 
-def write_html_readme(filename, description, out_dir, title=None):
+# Filter controls shown on each track type's details page.
+PLATFORM_FILTER_ROWS = [
+    ("Modification type", "show only selected modification types"),
+    ("Detection score", "filter by score, 0–1000"),
+    ("Read coverage", "filter by number of reads/spectra covering the site"),
+    ("Modification frequency (%)", "filter by stoichiometry, 0–100%"),
+]
+
+TIERED_FILTER_ROWS = [
+    ("Modification type", "show only selected modification types"),
+    (
+        "Confidence tier",
+        "show only tier1 (strongest cross-platform evidence) and/or tier2 "
+        "(supported by ≥2 datasets) sites",
+    ),
+]
+
+PLATFORM_SATURATION_NOTE = (
+    "within each modification type, color saturation is proportional to "
+    "modification frequency — vivid colors mark high-frequency "
+    "(high-stoichiometry) sites, pale colors mark low-frequency sites."
+)
+
+TIERED_SATURATION_NOTE = (
+    "within each modification type, color saturation encodes confidence tier "
+    "— tier1 sites (strongest cross-platform evidence) are vivid, tier2 "
+    "sites (supported by ≥2 datasets) are pale."
+)
+
+
+def build_color_key_html():
+    """Render the modification-type color key (hue table) as an HTML legend."""
+    seen_hex = set()
+    rows = []
+    for name, hexcode in COLOR_CODE.items():
+        if hexcode in seen_hex:
+            continue  # skip duplicate aliases (e.g. "I" alongside "Ino")
+        seen_hex.add(hexcode)
+        display_name = "Ino / I" if name == "Ino" else name
+        rows.append(
+            f"<tr><td>{display_name}</td>"
+            f'<td><span style="display:inline-block;width:14px;height:14px;'
+            f'background-color:{hexcode};border:1px solid #999;"></span></td>'
+            f"<td>{hexcode}</td></tr>"
+        )
+    return (
+        "<table border=\"1\" cellpadding=\"4\" cellspacing=\"0\">\n"
+        "<tr><th>Modification</th><th>Color</th><th>Hex</th></tr>\n"
+        + "\n".join(rows) + "\n"
+        "</table>"
+    )
+
+
+def build_display_conventions_html(saturation_note, filter_rows):
+    """Build a 'Display Conventions and Configuration' section: how items are
+    colored, plus the filter controls available on the track details page."""
+    filter_items = "".join(
+        f"<li><strong>{label}</strong> — {desc}</li>\n" for label, desc in filter_rows
+    )
+    return (
+        "<h3>Display Conventions and Configuration</h3>\n"
+        "<p>\n"
+        "  Items are colored by modification type; "
+        f"{saturation_note}\n"
+        "  Modification types not shown in the color key below are rendered in gray (#808080).\n"
+        "</p>\n"
+        f"{build_color_key_html()}\n"
+        "<p>\n"
+        "  This track can be filtered using the controls on the track description page "
+        "(click the track name in the Genome Browser, then scroll down):\n"
+        "</p>\n"
+        f"<ul>\n{filter_items}</ul>"
+    )
+
+
+def write_html_readme(filename, description, out_dir, title=None, extra_html=""):
     stem      = os.path.splitext(filename)[0]
     html_path = os.path.join(out_dir, f"{stem}.html")
     title     = title or stem
@@ -638,7 +713,7 @@ def write_html_readme(filename, description, out_dir, title=None):
 <body>
 <h2>{title}</h2>
 <p>{description}</p>
-
+{extra_html}
 <p>
   <strong>Reference:</strong>
   <a href="{PAPER_URL}">{PAPER_URL}</a>
@@ -659,6 +734,8 @@ def generate_html_readmes(descriptions, tiered_descriptions):
         label   = cfg["label"]
         hub_dir = os.path.join(HUB_DIR, cfg["hub_dir"])
         os.makedirs(hub_dir, exist_ok=True)
+        codon_table = build_codon_table_html() if rna_type == "tRNA" else ""
+
         for modality in MODALITIES:
             filename = f"{rna_type}_{modality}.bed"
             bed_path = os.path.join(FINAL_DATA_DIR, rna_type, filename)
@@ -668,7 +745,13 @@ def generate_html_readmes(descriptions, tiered_descriptions):
                 modality,
                 f"RNA modification sites — {label}, {modality}. (PLACEHOLDER description)"
             )
-            html_path = write_html_readme(filename, desc, hub_dir, title=f"{label} {modality}")
+            extra_html = (
+                build_display_conventions_html(PLATFORM_SATURATION_NOTE, PLATFORM_FILTER_ROWS)
+                + "\n" + codon_table
+            )
+            html_path = write_html_readme(
+                filename, desc, hub_dir, title=f"{label} {modality}", extra_html=extra_html
+            )
             print(f"  HTML → {html_path}")
 
         tiered_bed = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_consensus_tiered.bed")
@@ -677,9 +760,13 @@ def generate_html_readmes(descriptions, tiered_descriptions):
                 rna_type,
                 f"Tiered consensus RNA modification sites — {label}. (PLACEHOLDER description)"
             )
+            extra_html = (
+                build_display_conventions_html(TIERED_SATURATION_NOTE, TIERED_FILTER_ROWS)
+                + "\n" + codon_table
+            )
             html_path = write_html_readme(
                 f"{rna_type}_consensus_tiered.bed", desc, hub_dir,
-                title=f"{label} tiered consensus"
+                title=f"{label} tiered consensus", extra_html=extra_html
             )
             print(f"  HTML → {html_path}")
 
@@ -862,7 +949,7 @@ def write_genomes_txt():
                 f"trackDb {hub_dir}/trackDb.txt\n"
                 f"defaultPos chr21:8400001-8500000\n"
                 f"organism \"Homo sapiens\"\n"
-                f"description \"Human RNA modifications ({label}, hg38)\"\n"
+                f"description \"Human RNome Project\"\n"
             )
         elif rna_type == "tRNA":
             _write_assembly_html(hub_dir, label, extra_html=build_codon_table_html())
@@ -873,7 +960,7 @@ def write_genomes_txt():
                 f"defaultPos hs_tRNAAla_AGC:1-76\n"
                 f"htmlPath {hub_dir}/assemblyDescription.html\n"
                 f"organism \"{organism}\"\n"
-                f"description \"{label}\"\n"
+                f"description \"Human RNome Project\"\n"
                 f"scientificName \"Homo sapiens\"\n"
             )
         else:  # rRNA
@@ -886,7 +973,7 @@ def write_genomes_txt():
                 f"defaultPos hs_rRNA_18S:1-1869\n"
                 f"htmlPath {hub_dir}/assemblyDescription.html\n"
                 f"organism \"{organism}\"\n"
-                f"description \"{label}\"\n"
+                f"description \"Human RNome Project\"\n"
                 f"scientificName \"Homo sapiens\"\n"
             )
         lines.append(block)
