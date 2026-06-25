@@ -110,6 +110,14 @@ DEFAULT_COLOR = "#808080"
 RNA_TYPES  = ["polyA_RNA_hg38", "tRNA", "rRNA"]
 MODALITIES = ["SRS", "LRS", "MS"]
 
+# Track shortLabel/longLabel text — fixed across all RNA types (no RNA class in the name).
+TRACK_LABELS = {
+    "SRS": "Human RNome Project — Short-Read Sequencing Modifications",
+    "LRS": "Human RNome Project — Long-Read Sequencing Modifications",
+    "MS":  "Human RNome Project — Mass Spectrometry Modifications",
+}
+TIERED_TRACK_LABEL = "Human RNome Project — Concensus Sequence"
+
 # ── Assembly config ────────────────────────────────────────────────────────────
 
 ASSEMBLY_CFG = {
@@ -742,9 +750,9 @@ def write_hub_txt():
             fh.write("""\
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><title>Human RNome RNA Modification Atlas</title></head>
+<head><meta charset="utf-8"><title>Human RNome Project</title></head>
 <body>
-<h2>Human RNome RNA Modification Atlas </h2>
+<h2>Human RNome RNA Project </h2>
 <p>
   A comprehensive map of RNA modifications across the human transcriptome,
   integrating short-read sequencing (SRS), long-read sequencing (LRS), and mass spectrometry (MS) data
@@ -756,8 +764,8 @@ def write_hub_txt():
 """)
     content = f"""\
 hub RNome
-shortLabel RNome Modifications
-longLabel Human RNome RNA Modification Atlas 
+shortLabel Human RNome Project
+longLabel Human RNome Project
 genomesFile genomes.txt
 email baihe_sun@mail.dfci.harvard.edu
 descriptionUrl hubDescription.html
@@ -768,7 +776,56 @@ descriptionUrl hubDescription.html
     print(f"  hub.txt → {path}")
 
 
-def _write_assembly_html(hub_dir, label):
+# Standard genetic code (mRNA codons, 5'→3') — used for the tRNA documentation's codon table.
+STANDARD_GENETIC_CODE = {
+    "UUU": "Phe", "UUC": "Phe", "UUA": "Leu", "UUG": "Leu",
+    "CUU": "Leu", "CUC": "Leu", "CUA": "Leu", "CUG": "Leu",
+    "AUU": "Ile", "AUC": "Ile", "AUA": "Ile", "AUG": "Met",
+    "GUU": "Val", "GUC": "Val", "GUA": "Val", "GUG": "Val",
+    "UCU": "Ser", "UCC": "Ser", "UCA": "Ser", "UCG": "Ser",
+    "CCU": "Pro", "CCC": "Pro", "CCA": "Pro", "CCG": "Pro",
+    "ACU": "Thr", "ACC": "Thr", "ACA": "Thr", "ACG": "Thr",
+    "GCU": "Ala", "GCC": "Ala", "GCA": "Ala", "GCG": "Ala",
+    "UAU": "Tyr", "UAC": "Tyr", "UAA": "Stop", "UAG": "Stop",
+    "CAU": "His", "CAC": "His", "CAA": "Gln", "CAG": "Gln",
+    "AAU": "Asn", "AAC": "Asn", "AAA": "Lys", "AAG": "Lys",
+    "GAU": "Asp", "GAC": "Asp", "GAA": "Glu", "GAG": "Glu",
+    "UGU": "Cys", "UGC": "Cys", "UGA": "Stop", "UGG": "Trp",
+    "CGU": "Arg", "CGC": "Arg", "CGA": "Arg", "CGG": "Arg",
+    "AGU": "Ser", "AGC": "Ser", "AGA": "Arg", "AGG": "Arg",
+    "GGU": "Gly", "GGC": "Gly", "GGA": "Gly", "GGG": "Gly",
+}
+
+AA_3_TO_1 = {
+    "Ala": "A", "Arg": "R", "Asn": "N", "Asp": "D", "Cys": "C",
+    "Gln": "Q", "Glu": "E", "Gly": "G", "His": "H", "Ile": "I",
+    "Leu": "L", "Lys": "K", "Met": "M", "Phe": "F", "Pro": "P",
+    "Ser": "S", "Thr": "T", "Trp": "W", "Tyr": "Y", "Val": "V",
+    "Stop": "*",
+}
+
+
+def build_codon_table_html():
+    """Render the standard genetic code as an HTML table, grouped by amino acid."""
+    codons_by_aa = {}
+    for codon, aa in STANDARD_GENETIC_CODE.items():
+        codons_by_aa.setdefault(aa, []).append(codon)
+
+    rows = []
+    for aa in sorted(codons_by_aa, key=lambda a: (a == "Stop", a)):
+        codons = ", ".join(sorted(codons_by_aa[aa]))
+        rows.append(f"<tr><td>{aa}</td><td>{AA_3_TO_1[aa]}</td><td>{codons}</td></tr>")
+
+    return (
+        "<h3>Standard genetic code</h3>\n"
+        "<table border=\"1\" cellpadding=\"4\" cellspacing=\"0\">\n"
+        "<tr><th>Amino acid</th><th>Code</th><th>Codons (mRNA, 5'→3')</th></tr>\n"
+        + "\n".join(rows) + "\n"
+        "</table>"
+    )
+
+
+def _write_assembly_html(hub_dir, label, extra_html=""):
     """Write a minimal assembly description HTML for custom assembly hubs."""
     html_path = os.path.join(HUB_DIR, hub_dir, "assemblyDescription.html")
     if not os.path.exists(html_path):
@@ -780,8 +837,9 @@ def _write_assembly_html(hub_dir, label):
 <body>
 <h2>{label} — Custom Assembly</h2>
 <p>
-  Custom reference sequences for human {label} used in the RNome RNA Modification Atlas.
+  Custom reference sequences for human {label} used in the Human RNome Project.
 </p>
+{extra_html}
 <p><strong>Reference:</strong> PLACEHOLDER_DOI</p>
 </body>
 </html>
@@ -807,7 +865,7 @@ def write_genomes_txt():
                 f"description \"Human RNA modifications ({label}, hg38)\"\n"
             )
         elif rna_type == "tRNA":
-            _write_assembly_html(hub_dir, label)
+            _write_assembly_html(hub_dir, label, extra_html=build_codon_table_html())
             block = (
                 f"genome {ucsc_name}\n"
                 f"trackDb {hub_dir}/trackDb.txt\n"
@@ -902,7 +960,6 @@ def write_trackdb(rna_type):
         return
 
     safe_rna = safe_id(rna_type)
-    label    = cfg["label"]
     stanzas  = []
 
     # ── Tiered cross-platform consensus track (vivid=tier1, pale=tier2) ─────────
@@ -918,8 +975,8 @@ def write_trackdb(rna_type):
             stanzas.append(
                 f"track {tiered_tid}\n"
                 f"bigDataUrl {rna_type}_consensus_tiered.bigBed\n"
-                f"shortLabel Tiered consensus\n"
-                f"longLabel {label} tiered cross-platform consensus modifications\n"
+                f"shortLabel {TIERED_TRACK_LABEL}\n"
+                f"longLabel {TIERED_TRACK_LABEL}\n"
                 f"type bigBed 9 +\n"
                 f"itemRgb on\n"
                 f"visibility pack\n"
@@ -945,8 +1002,8 @@ def write_trackdb(rna_type):
             stanzas.append(
                 f"track {consensus_tid}\n"
                 f"bigDataUrl {bigbed_fname}\n"
-                f"shortLabel {modality}\n"
-                f"longLabel {label} {modality} modifications\n"
+                f"shortLabel {TRACK_LABELS[modality]}\n"
+                f"longLabel {TRACK_LABELS[modality]}\n"
                 f"type bigBed 9 +\n"
                 f"itemRgb on\n"
                 f"visibility pack\n"

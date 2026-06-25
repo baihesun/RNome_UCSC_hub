@@ -1,7 +1,7 @@
 track polyA_RNA_hg38_consensus_tiered
 bigDataUrl polyA_RNA_hg38_consensus_tiered.bigBed
-shortLabel Tiered consensus
-longLabel poly(A) RNA tiered cross-platform consensus modifications
+shortLabel Human RNome Project -- Concensus Sequence
+longLabel Human RNome Project -- Concensus Sequence
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -14,8 +14,8 @@ priority 1
 
 track polyA_RNA_hg38_SRS_consensus
 bigDataUrl polyA_RNA_hg38_SRS.bigBed
-shortLabel SRS
-longLabel poly(A) RNA SRS modifications
+shortLabel Human RNome Project -- Short-Read Sequencing Modifications
+longLabel Human RNome Project -- Short-Read Sequencing Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -40,8 +40,8 @@ priority 2
 
 track polyA_RNA_hg38_LRS_consensus
 bigDataUrl polyA_RNA_hg38_LRS.bigBed
-shortLabel LRS
-longLabel poly(A) RNA LRS modifications
+shortLabel Human RNome Project -- Long-Read Sequencing Modifications
+longLabel Human RNome Project -- Long-Read Sequencing Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack

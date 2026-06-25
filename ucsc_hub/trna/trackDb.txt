@@ -1,7 +1,7 @@
 track tRNA_consensus_tiered
 bigDataUrl tRNA_consensus_tiered.bigBed
-shortLabel Tiered consensus
-longLabel tRNA tiered cross-platform consensus modifications
+shortLabel Human RNome Project -- Concensus Sequence
+longLabel Human RNome Project -- Concensus Sequence
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -14,8 +14,8 @@ priority 1
 
 track tRNA_SRS_consensus
 bigDataUrl tRNA_SRS.bigBed
-shortLabel SRS
-longLabel tRNA SRS modifications
+shortLabel Human RNome Project -- Short-Read Sequencing Modifications
+longLabel Human RNome Project -- Short-Read Sequencing Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -40,8 +40,8 @@ priority 2
 
 track tRNA_MS_consensus
 bigDataUrl tRNA_MS.bigBed
-shortLabel MS
-longLabel tRNA MS modifications
+shortLabel Human RNome Project -- Mass Spectrometry Modifications
+longLabel Human RNome Project -- Mass Spectrometry Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
