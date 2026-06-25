@@ -107,6 +107,24 @@ COLOR_CODE = {
 }
 DEFAULT_COLOR = "#808080"
 
+MOD_FULL_NAMES = {
+    "m6A":     "N6-methyladenosine",
+    "Am":      "2'-O-methyladenosine",
+    "Ino":     "Inosine",
+    "m1A":     "N1-methyladenosine",
+    "m66A":    "N6,N6-dimethyladenosine",
+    "m1acp3Y": "1-methyl-3-(3-amino-3-carboxypropyl)pseudouridine",
+    "Y":       "Pseudouridine",
+    "Ym":      "2'-O-methylpseudouridine",
+    "Um":      "2'-O-methyluridine",
+    "m3U":     "3-methyluridine",
+    "Gm":      "2'-O-methylguanosine",
+    "m7G":     "N7-methylguanosine",
+    "Cm":      "2'-O-methylcytidine",
+    "m5C":     "5-methylcytidine",
+    "ac4C":    "N4-acetylcytidine",
+}
+
 RNA_TYPES  = ["polyA_RNA_hg38", "tRNA", "rRNA"]
 MODALITIES = ["SRS", "LRS", "MS"]
 
@@ -663,15 +681,16 @@ def build_color_key_html():
             continue  # skip duplicate aliases (e.g. "I" alongside "Ino")
         seen_hex.add(hexcode)
         display_name = "Ino / I" if name == "Ino" else name
+        full_name = MOD_FULL_NAMES.get(name, "")
         rows.append(
-            f"<tr><td>{display_name}</td>"
+            f"<tr><td>{display_name}</td><td>{full_name}</td>"
             f'<td><span style="display:inline-block;width:14px;height:14px;'
             f'background-color:{hexcode};border:1px solid #999;"></span></td>'
             f"<td>{hexcode}</td></tr>"
         )
     return (
         "<table border=\"1\" cellpadding=\"4\" cellspacing=\"0\">\n"
-        "<tr><th>Modification</th><th>Color</th><th>Hex</th></tr>\n"
+        "<tr><th>Modification</th><th>Full name</th><th>Color</th><th>Hex</th></tr>\n"
         + "\n".join(rows) + "\n"
         "</table>"
     )
