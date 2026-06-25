@@ -128,6 +128,13 @@ MOD_FULL_NAMES = {
 RNA_TYPES  = ["polyA_RNA_hg38", "tRNA", "rRNA"]
 MODALITIES = ["SRS", "LRS", "MS"]
 
+# Spelled-out modality names, used in track HTML page titles/headings.
+MODALITY_FULL_NAMES = {
+    "SRS": "short-read sequencing",
+    "LRS": "long-read sequencing",
+    "MS":  "mass spectrometry",
+}
+
 # Track shortLabel/longLabel text — fixed across all RNA types (no RNA class in the name).
 TRACK_LABELS = {
     "SRS": "Human RNome Project — Short-Read Sequencing Modifications",
@@ -769,7 +776,8 @@ def generate_html_readmes(descriptions, tiered_descriptions):
                 + build_display_conventions_html(PLATFORM_SATURATION_NOTE, PLATFORM_FILTER_ROWS)
             )
             html_path = write_html_readme(
-                filename, desc, hub_dir, title=f"{label} {modality}", extra_html=extra_html
+                filename, desc, hub_dir,
+                title=f"{label} {MODALITY_FULL_NAMES[modality]}", extra_html=extra_html
             )
             print(f"  HTML → {html_path}")
 
