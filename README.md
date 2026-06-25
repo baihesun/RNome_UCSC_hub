@@ -1,4 +1,4 @@
-# RNome RNA Modification Atlas — UCSC Track Hub
+# Human RNome Project
 
 UCSC Genome Browser assembly hub visualizing RNA modifications across the human
 "RNome": poly-A RNA (hg38), ribosomal RNA (rRNA, 18S/28S/5.8S/5S), and transfer
