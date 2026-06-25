@@ -67,7 +67,7 @@ priority 3
 track NA12878_variants
 bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_merged.vcf.gz
 shortLabel NA12878 variants
-longLabel NA12878 WGS Variants
+longLabel NA12878 Whole-Genome Sequencing DNA Variants
 type vcfTabix
 visibility squish
 maxWindowToDraw 200000
