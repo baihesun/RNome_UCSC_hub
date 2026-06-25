@@ -746,8 +746,8 @@ def generate_html_readmes(descriptions, tiered_descriptions):
                 f"RNA modification sites — {label}, {modality}. (PLACEHOLDER description)"
             )
             extra_html = (
-                build_display_conventions_html(PLATFORM_SATURATION_NOTE, PLATFORM_FILTER_ROWS)
-                + "\n" + codon_table
+                codon_table + "\n"
+                + build_display_conventions_html(PLATFORM_SATURATION_NOTE, PLATFORM_FILTER_ROWS)
             )
             html_path = write_html_readme(
                 filename, desc, hub_dir, title=f"{label} {modality}", extra_html=extra_html
@@ -761,8 +761,8 @@ def generate_html_readmes(descriptions, tiered_descriptions):
                 f"Tiered consensus RNA modification sites — {label}. (PLACEHOLDER description)"
             )
             extra_html = (
-                build_display_conventions_html(TIERED_SATURATION_NOTE, TIERED_FILTER_ROWS)
-                + "\n" + codon_table
+                codon_table + "\n"
+                + build_display_conventions_html(TIERED_SATURATION_NOTE, TIERED_FILTER_ROWS)
             )
             html_path = write_html_readme(
                 f"{rna_type}_consensus_tiered.bed", desc, hub_dir,
@@ -891,6 +891,15 @@ AA_3_TO_1 = {
     "Stop": "*",
 }
 
+AA_3_TO_FULL = {
+    "Ala": "Alanine", "Arg": "Arginine", "Asn": "Asparagine", "Asp": "Aspartic acid",
+    "Cys": "Cysteine", "Gln": "Glutamine", "Glu": "Glutamic acid", "Gly": "Glycine",
+    "His": "Histidine", "Ile": "Isoleucine", "Leu": "Leucine", "Lys": "Lysine",
+    "Met": "Methionine", "Phe": "Phenylalanine", "Pro": "Proline", "Ser": "Serine",
+    "Thr": "Threonine", "Trp": "Tryptophan", "Tyr": "Tyrosine", "Val": "Valine",
+    "Stop": "Stop",
+}
+
 
 def build_codon_table_html():
     """Render the standard genetic code as an HTML table, grouped by amino acid."""
@@ -901,12 +910,15 @@ def build_codon_table_html():
     rows = []
     for aa in sorted(codons_by_aa, key=lambda a: (a == "Stop", a)):
         codons = ", ".join(sorted(codons_by_aa[aa]))
-        rows.append(f"<tr><td>{aa}</td><td>{AA_3_TO_1[aa]}</td><td>{codons}</td></tr>")
+        rows.append(
+            f"<tr><td>{AA_3_TO_FULL[aa]}</td><td>{aa}</td><td>{AA_3_TO_1[aa]}</td><td>{codons}</td></tr>"
+        )
 
     return (
         "<h3>Standard genetic code</h3>\n"
         "<table border=\"1\" cellpadding=\"4\" cellspacing=\"0\">\n"
-        "<tr><th>Amino acid</th><th>Code</th><th>Codons (mRNA, 5'→3')</th></tr>\n"
+        "<tr><th>Amino acid</th><th>3 letter abbreviation</th>"
+        "<th>1 letter abbreviation</th><th>Codons (mRNA, 5'→3')</th></tr>\n"
         + "\n".join(rows) + "\n"
         "</table>"
     )

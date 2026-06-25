@@ -7,6 +7,31 @@
 <body>
 <h2>tRNA SRS</h2>
 <p>This track catalogues all RNA modification sites identified using the Illumina platform. It aggregates diverse modification types from multiple methods, retaining high-confidence sites supported by at least two replicates per method.</p>
+<h3>Standard genetic code</h3>
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Amino acid</th><th>3 letter abbreviation</th><th>1 letter abbreviation</th><th>Codons (mRNA, 5'→3')</th></tr>
+<tr><td>Alanine</td><td>Ala</td><td>A</td><td>GCA, GCC, GCG, GCU</td></tr>
+<tr><td>Arginine</td><td>Arg</td><td>R</td><td>AGA, AGG, CGA, CGC, CGG, CGU</td></tr>
+<tr><td>Asparagine</td><td>Asn</td><td>N</td><td>AAC, AAU</td></tr>
+<tr><td>Aspartic acid</td><td>Asp</td><td>D</td><td>GAC, GAU</td></tr>
+<tr><td>Cysteine</td><td>Cys</td><td>C</td><td>UGC, UGU</td></tr>
+<tr><td>Glutamine</td><td>Gln</td><td>Q</td><td>CAA, CAG</td></tr>
+<tr><td>Glutamic acid</td><td>Glu</td><td>E</td><td>GAA, GAG</td></tr>
+<tr><td>Glycine</td><td>Gly</td><td>G</td><td>GGA, GGC, GGG, GGU</td></tr>
+<tr><td>Histidine</td><td>His</td><td>H</td><td>CAC, CAU</td></tr>
+<tr><td>Isoleucine</td><td>Ile</td><td>I</td><td>AUA, AUC, AUU</td></tr>
+<tr><td>Leucine</td><td>Leu</td><td>L</td><td>CUA, CUC, CUG, CUU, UUA, UUG</td></tr>
+<tr><td>Lysine</td><td>Lys</td><td>K</td><td>AAA, AAG</td></tr>
+<tr><td>Methionine</td><td>Met</td><td>M</td><td>AUG</td></tr>
+<tr><td>Phenylalanine</td><td>Phe</td><td>F</td><td>UUC, UUU</td></tr>
+<tr><td>Proline</td><td>Pro</td><td>P</td><td>CCA, CCC, CCG, CCU</td></tr>
+<tr><td>Serine</td><td>Ser</td><td>S</td><td>AGC, AGU, UCA, UCC, UCG, UCU</td></tr>
+<tr><td>Threonine</td><td>Thr</td><td>T</td><td>ACA, ACC, ACG, ACU</td></tr>
+<tr><td>Tryptophan</td><td>Trp</td><td>W</td><td>UGG</td></tr>
+<tr><td>Tyrosine</td><td>Tyr</td><td>Y</td><td>UAC, UAU</td></tr>
+<tr><td>Valine</td><td>Val</td><td>V</td><td>GUA, GUC, GUG, GUU</td></tr>
+<tr><td>Stop</td><td>Stop</td><td>*</td><td>UAA, UAG, UGA</td></tr>
+</table>
 <h3>Display Conventions and Configuration</h3>
 <p>
   Items are colored by modification type; within each modification type, color saturation is proportional to modification frequency — vivid colors mark high-frequency (high-stoichiometry) sites, pale colors mark low-frequency sites.
@@ -39,31 +64,6 @@
 <li><strong>Read coverage</strong> — filter by number of reads/spectra covering the site</li>
 <li><strong>Modification frequency (%)</strong> — filter by stoichiometry, 0–100%</li>
 </ul>
-<h3>Standard genetic code</h3>
-<table border="1" cellpadding="4" cellspacing="0">
-<tr><th>Amino acid</th><th>Code</th><th>Codons (mRNA, 5'→3')</th></tr>
-<tr><td>Ala</td><td>A</td><td>GCA, GCC, GCG, GCU</td></tr>
-<tr><td>Arg</td><td>R</td><td>AGA, AGG, CGA, CGC, CGG, CGU</td></tr>
-<tr><td>Asn</td><td>N</td><td>AAC, AAU</td></tr>
-<tr><td>Asp</td><td>D</td><td>GAC, GAU</td></tr>
-<tr><td>Cys</td><td>C</td><td>UGC, UGU</td></tr>
-<tr><td>Gln</td><td>Q</td><td>CAA, CAG</td></tr>
-<tr><td>Glu</td><td>E</td><td>GAA, GAG</td></tr>
-<tr><td>Gly</td><td>G</td><td>GGA, GGC, GGG, GGU</td></tr>
-<tr><td>His</td><td>H</td><td>CAC, CAU</td></tr>
-<tr><td>Ile</td><td>I</td><td>AUA, AUC, AUU</td></tr>
-<tr><td>Leu</td><td>L</td><td>CUA, CUC, CUG, CUU, UUA, UUG</td></tr>
-<tr><td>Lys</td><td>K</td><td>AAA, AAG</td></tr>
-<tr><td>Met</td><td>M</td><td>AUG</td></tr>
-<tr><td>Phe</td><td>F</td><td>UUC, UUU</td></tr>
-<tr><td>Pro</td><td>P</td><td>CCA, CCC, CCG, CCU</td></tr>
-<tr><td>Ser</td><td>S</td><td>AGC, AGU, UCA, UCC, UCG, UCU</td></tr>
-<tr><td>Thr</td><td>T</td><td>ACA, ACC, ACG, ACU</td></tr>
-<tr><td>Trp</td><td>W</td><td>UGG</td></tr>
-<tr><td>Tyr</td><td>Y</td><td>UAC, UAU</td></tr>
-<tr><td>Val</td><td>V</td><td>GUA, GUC, GUG, GUU</td></tr>
-<tr><td>Stop</td><td>*</td><td>UAA, UAG, UGA</td></tr>
-</table>
 <p>
   <strong>Reference:</strong>
   <a href="PLACEHOLDER_DOI">PLACEHOLDER_DOI</a>
