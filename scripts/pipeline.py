@@ -1158,7 +1158,7 @@ def write_trackdb(rna_type):
         stanzas.append(
             "track NA12878_variants\n"
             "bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_merged.vcf.gz\n"
-            "shortLabel NA12878 variants\n"
+            "shortLabel NA12878 Whole-Genome Sequencing DNA Variants\n"
             "longLabel NA12878 Whole-Genome Sequencing DNA Variants\n"
             "type vcfTabix\n"
             "visibility squish\n"
