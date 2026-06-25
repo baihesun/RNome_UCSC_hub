@@ -1150,7 +1150,7 @@ def write_trackdb(rna_type):
 <html lang="en">
 <head><meta charset="utf-8"><title>NA12878 WGS Variants</title></head>
 <body>
-<h2>NA12878 — WGS Merged Variant Calls (two-caller)</h2>
+<h2>NA12878 — WGS Variants</h2>
 <p>Whole-genome sequencing variant calls for sample NA12878, merged from two independent variant callers.</p>
 </body>
 </html>
@@ -1159,7 +1159,7 @@ def write_trackdb(rna_type):
             "track NA12878_variants\n"
             "bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_merged.vcf.gz\n"
             "shortLabel NA12878 variants\n"
-            "longLabel NA12878 WGS merged variant calls (two-caller)\n"
+            "longLabel NA12878 WGS Variants\n"
             "type vcfTabix\n"
             "visibility squish\n"
             "maxWindowToDraw 200000\n"

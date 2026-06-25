@@ -1,7 +1,7 @@
 track polyA_RNA_hg38_consensus_tiered
 bigDataUrl polyA_RNA_hg38_consensus_tiered.bigBed
-shortLabel Human RNome Project -- Concensus Sequence
-longLabel Human RNome Project -- Concensus Sequence
+shortLabel Human RNome Project — Concensus Sequence
+longLabel Human RNome Project — Concensus Sequence
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -14,8 +14,8 @@ priority 1
 
 track polyA_RNA_hg38_SRS_consensus
 bigDataUrl polyA_RNA_hg38_SRS.bigBed
-shortLabel Human RNome Project -- Short-Read Sequencing Modifications
-longLabel Human RNome Project -- Short-Read Sequencing Modifications
+shortLabel Human RNome Project — Short-Read Sequencing Modifications
+longLabel Human RNome Project — Short-Read Sequencing Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -40,8 +40,8 @@ priority 2
 
 track polyA_RNA_hg38_LRS_consensus
 bigDataUrl polyA_RNA_hg38_LRS.bigBed
-shortLabel Human RNome Project -- Long-Read Sequencing Modifications
-longLabel Human RNome Project -- Long-Read Sequencing Modifications
+shortLabel Human RNome Project — Long-Read Sequencing Modifications
+longLabel Human RNome Project — Long-Read Sequencing Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -67,7 +67,7 @@ priority 3
 track NA12878_variants
 bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_merged.vcf.gz
 shortLabel NA12878 variants
-longLabel NA12878 WGS merged variant calls (two-caller)
+longLabel NA12878 WGS Variants
 type vcfTabix
 visibility squish
 maxWindowToDraw 200000
