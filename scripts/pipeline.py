@@ -38,20 +38,21 @@ SOURCE_DIR = "final_bedRmods"
 # sequencing (ONT). Source filenames keep their original Illumina/ONT names.
 COMBINED_FILES = {
     "SRS": os.path.join(SOURCE_DIR, "Illumina_combined_polyARNA_tRNA_rRNA_rmchrY.bed"),
-    "LRS": os.path.join(SOURCE_DIR, "ONT_polyARNA_rRNA_combined.filtered_rmchrY.bed"),
+    "LRS": os.path.join(SOURCE_DIR, "ONT_polyARNA_rRNA_tRNA_combined.filtered_rmchrY.bed"),
     "MS":  os.path.join(SOURCE_DIR, "MS_rRNA_tRNA.bed"),
 }
 
-# Tiered cross-platform consensus tracks: one pre-merged file per RNA type,
-# already split (no further splitting needed). Columns: chr/start/end/name/
-# tier/strand (+ 2 extra rRNA-only columns that are ignored — see
-# process_tiered_for_bigbed).
-TIERED_DIR = "concensus_tsvs"
+# Tiered cross-platform consensus track: one combined bed with all RNA types
+# (header: #chr/start/end/name/tier/strand). Split into per-RNA-type
+# intermediates by split_tiered_file() before bigBed conversion.
+TIERED_COMBINED_FILE = os.path.join("concensus", "consensus_draft_sequence.bed")
 
+# Still used only for manifest description matching (basenames match manifest rows).
+# These files no longer need to exist on disk.
 TIERED_FILES = {
-    "rRNA":           os.path.join(TIERED_DIR, "tiered_rRNA_only.tsv"),
-    "tRNA":           os.path.join(TIERED_DIR, "tiered_tRNA.tsv"),
-    "polyA_RNA_hg38": os.path.join(TIERED_DIR, "tiered_polyA.tsv"),
+    "rRNA":           os.path.join("concensus_tsvs", "tiered_rRNA_only.tsv"),
+    "tRNA":           os.path.join("concensus_tsvs", "tiered_tRNA.tsv"),
+    "polyA_RNA_hg38": os.path.join("concensus_tsvs", "tiered_polyA.tsv"),
 }
 
 # Saturation (%) used by mod_to_rgb for each tier — tier1 is vivid, tier2 is pale.
@@ -410,7 +411,8 @@ def split_combined_files():
 # Step 2 — Convert split BED → bigBed
 # ══════════════════════════════════════════════════════════════════════════════
 
-def process_bed_for_bigbed(src_path, dst_path, chrom_remap=None, valid_chroms=None):
+def process_bed_for_bigbed(src_path, dst_path, chrom_remap=None, valid_chroms=None,
+                           chrom_sizes=None):
     """
     Normalise a 13-col bedRmod file for bedToBigBed:
       - Score clamped to 0-1000
@@ -420,6 +422,8 @@ def process_bed_for_bigbed(src_path, dst_path, chrom_remap=None, valid_chroms=No
                        whose non-chr chrom is absent are dropped
       - valid_chroms:  set of allowed chrom names (checked after remap);
                        rows with other chroms are dropped
+      - chrom_sizes:   dict of chrom → size; end/thickEnd clamped to size
+                       (some ONT tRNA calls extend past the reference end)
     """
     rows = []
     skipped = 0
@@ -451,12 +455,25 @@ def process_bed_for_bigbed(src_path, dst_path, chrom_remap=None, valid_chroms=No
                 freq = 0.0
             cols[4] = clamp_score(cols[4])
             cols[5] = cols[5] if cols[5] in ("+", "-") else "+"
-            try:
-                cols[6] = str(int(float(cols[6])))
-                cols[7] = str(int(float(cols[7])))
-            except ValueError:
-                pass
+            # thickStart/thickEnd must equal chromStart/chromEnd for modification
+            # sites. Some bedRmod files (e.g. ONT/LRS) store other positions
+            # here (anticodon, etc.) which violate the BED9 constraint.
+            cols[6] = cols[1]
+            cols[7] = cols[2]
             cols[8] = mod_to_rgb(mod_name, freq)
+            # Clamp end/thickEnd to chrom size for assemblies with short sequences
+            # (tRNA). Must run after cols[7] is set above.
+            if chrom_sizes is not None:
+                chrom_len = chrom_sizes.get(cols[0])
+                if chrom_len is not None:
+                    try:
+                        cols[2] = str(min(int(cols[2]), chrom_len))
+                        cols[7] = cols[2]
+                        if int(cols[2]) <= int(cols[1]):
+                            skipped += 1
+                            continue  # degenerate interval after clamping
+                    except ValueError:
+                        pass
             try:
                 cols[9] = str(int(float(cols[9])))
             except ValueError:
@@ -594,11 +611,13 @@ def convert_split_to_bigbed():
             if not os.path.exists(src_bed):
                 continue
 
-            remap = hg38_remap if rna_type == "polyA_RNA_hg38" else None
-            valid  = set(fai_to_sizes(sizes_path).keys()) if sizes_path else None
+            remap  = hg38_remap if rna_type == "polyA_RNA_hg38" else None
+            sizes  = fai_to_sizes(sizes_path) if sizes_path else {}
+            valid  = set(sizes.keys()) if sizes else None
             n, skipped = process_bed_for_bigbed(src_bed, fixed_bed,
                                                 chrom_remap=remap,
-                                                valid_chroms=valid)
+                                                valid_chroms=valid,
+                                                chrom_sizes=sizes)
             skip_str = f" ({skipped} skipped)" if skipped else ""
             print(f"  Processed {n:>6,} rows{skip_str}: {os.path.basename(src_bed)}")
 
@@ -609,14 +628,42 @@ def convert_split_to_bigbed():
                 os.remove(fixed_bed)
 
 
+def split_tiered_file():
+    """Split TIERED_COMBINED_FILE by RNA type into per-RNA-type intermediate beds."""
+    print(f"\n── Step 2b-split: Splitting {os.path.basename(TIERED_COMBINED_FILE)} ──")
+    if not os.path.exists(TIERED_COMBINED_FILE):
+        print(f"  [SKIP] not found: {TIERED_COMBINED_FILE}")
+        return
+    buckets = {rna: [] for rna in RNA_TYPES}
+    with open(TIERED_COMBINED_FILE, encoding="utf-8") as fh:
+        for line in fh:
+            if line.startswith("#") or not line.strip():
+                continue
+            chrom = line.split("\t")[0]
+            buckets[classify_rna_type(chrom)].append(line.rstrip("\n"))
+    for rna_type, lines in buckets.items():
+        if not lines:
+            continue
+        out_dir = os.path.join(FINAL_DATA_DIR, rna_type)
+        os.makedirs(out_dir, exist_ok=True)
+        out_path = os.path.join(out_dir, f"{rna_type}_consensus_tiered_raw.bed")
+        with open(out_path, "w", encoding="utf-8") as fh:
+            fh.write("chr\tstart\tend\tname\ttier\tstrand\n")  # dummy header for process_tiered_for_bigbed
+            fh.write("\n".join(lines) + "\n")
+        print(f"    {len(lines):>6,} lines → {out_path}")
+
+
 def convert_tiered_to_bigbed():
-    print("\n── Step 2b: Converting tiered consensus TSV → bigBed ──")
+    print("\n── Step 2c: Converting tiered consensus → bigBed ──")
+
+    split_tiered_file()
 
     sizes_for, hg38_remap = _build_sizes_and_remap()
 
-    for rna_type, src_tsv in TIERED_FILES.items():
-        if not os.path.exists(src_tsv):
-            print(f"  [SKIP] not found: {src_tsv}")
+    for rna_type in RNA_TYPES:
+        src_bed = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_consensus_tiered_raw.bed")
+        if not os.path.exists(src_bed):
+            print(f"  [SKIP] no split bed for {rna_type}")
             continue
 
         cfg        = ASSEMBLY_CFG[rna_type]
@@ -628,18 +675,18 @@ def convert_tiered_to_bigbed():
         os.makedirs(hub_dir, exist_ok=True)
         as_path = write_tiered_autosql(hub_dir)
 
-        out_dir   = os.path.join(FINAL_DATA_DIR, rna_type)
+        out_dir    = os.path.join(FINAL_DATA_DIR, rna_type)
         os.makedirs(out_dir, exist_ok=True)
-        dst_bed   = os.path.join(out_dir, f"{rna_type}_consensus_tiered.bed")
+        dst_bed    = os.path.join(out_dir, f"{rna_type}_consensus_tiered.bed")
         bigbed_out = os.path.join(hub_dir, f"{rna_type}_consensus_tiered.bigBed")
 
         remap = hg38_remap if rna_type == "polyA_RNA_hg38" else None
         valid  = set(fai_to_sizes(sizes_path).keys()) if sizes_path else None
-        n, skipped = process_tiered_for_bigbed(src_tsv, dst_bed,
+        n, skipped = process_tiered_for_bigbed(src_bed, dst_bed,
                                                 chrom_remap=remap,
                                                 valid_chroms=valid)
         skip_str = f" ({skipped} skipped)" if skipped else ""
-        print(f"  Processed {n:>6,} rows{skip_str}: {os.path.basename(src_tsv)}")
+        print(f"  Processed {n:>6,} rows{skip_str}: {os.path.basename(src_bed)}")
 
         if run_bedtobigbed(dst_bed, sizes_path, as_path, bigbed_out, bed_type="bed9+1"):
             print(f"  bigBed → {bigbed_out}")
