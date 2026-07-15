@@ -1,0 +1,5 @@
+genome hg38
+trackDb trackDb.txt
+defaultPos chr21:8400001-8500000
+organism "Homo sapiens"
+description "Human RNome Project — poly(A) RNA"

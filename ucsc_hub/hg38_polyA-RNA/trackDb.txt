@@ -1,7 +1,22 @@
+track HRP_sequence
+shortLabel Human RNome Project — RNA Sequence
+longLabel Human RNome Project — RNA Sequence
+type bigPsl
+bigDataUrl HRP.bigPsl.bb
+visibility squish
+indelQueryInsert on
+baseColorUseSequence lfExtra
+baseColorDefault diffBases
+showDiffBasesAllScales on
+decorator.default.bigDataUrl HRP_decorator.bigBed
+decorator.default.blockMode overlay
+decorator.default.maxLabelBases 2000000
+priority 1
+
 track polyA_RNA_hg38_consensus_tiered
 bigDataUrl polyA_RNA_hg38_consensus_tiered.bigBed
-shortLabel Human RNome Project — Concensus Sequence
-longLabel Human RNome Project — Concensus Sequence
+shortLabel Human RNome Project — Concensus Modifications
+longLabel Human RNome Project — Concensus Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
@@ -10,7 +25,7 @@ filterLabel.name Modification type
 filterValues.tier tier1,tier2
 filterLabel.tier Confidence tier
 html polyA_RNA_hg38_consensus_tiered
-priority 1
+priority 2
 
 track polyA_RNA_hg38_SRS_consensus
 bigDataUrl polyA_RNA_hg38_SRS.bigBed
@@ -36,7 +51,7 @@ filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name I,Y,m5C,m6A
 html polyA_RNA_hg38_SRS
-priority 2
+priority 3
 
 track polyA_RNA_hg38_LRS_consensus
 bigDataUrl polyA_RNA_hg38_LRS.bigBed
@@ -62,7 +77,7 @@ filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,I,Um,Y,m5C,m6A
 html polyA_RNA_hg38_LRS
-priority 3
+priority 4
 
 track NA12878_variants
 bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_intersection.vcf.gz

@@ -1,19 +1,18 @@
-track rRNA_consensus_tiered
-bigDataUrl rRNA_consensus_tiered.bigBed
+track tRNA_consensus_tiered
+bigDataUrl tRNA_consensus_tiered.bigBed
 shortLabel Human RNome Project — Concensus Modifications
 longLabel Human RNome Project — Concensus Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
-filterValues.name Am,Cm,Gm,Um,Y,m5C,m6A
+filterValues.name Cm,D,Gm,Um,Y,i6A,m1A,m1G,m2,2G,m3C,m5C,m6A
 filterLabel.name Modification type
 filterValues.tier tier1,tier2
 filterLabel.tier Confidence tier
-html rRNA_consensus_tiered
 priority 1
 
-track rRNA_SRS_consensus
-bigDataUrl rRNA_SRS.bigBed
+track tRNA_SRS_consensus
+bigDataUrl tRNA_SRS.bigBed
 shortLabel Human RNome Project — Short-Read Sequencing Modifications
 longLabel Human RNome Project — Short-Read Sequencing Modifications
 type bigBed 9 +
@@ -27,19 +26,18 @@ filterLimits.score 0:1000
 filterLabel.score Detection score
 filter.coverage 0
 filterByRange.coverage on
-filterLimits.coverage 0:13723723
+filterLimits.coverage 0:100
 filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
-filterValues.name Am,Cm,Gm,Um,Y,m1A,m3C,m5C,m6A,m7G
-html rRNA_SRS
+filterValues.name Am,Cm,D,Gm,I,Um,Y,ac4C,acp3U,f5C,i6A,m1A,m1G,m1I,m2,2G,m2G,m3C,m5C,m5U,m7G,mxU,s2U,t6A
 priority 2
 
-track rRNA_LRS_consensus
-bigDataUrl rRNA_LRS.bigBed
+track tRNA_LRS_consensus
+bigDataUrl tRNA_LRS.bigBed
 shortLabel Human RNome Project — Long-Read Sequencing Modifications
 longLabel Human RNome Project — Long-Read Sequencing Modifications
 type bigBed 9 +
@@ -53,7 +51,7 @@ filterLimits.score 0:1000
 filterLabel.score Detection score
 filter.coverage 0
 filterByRange.coverage on
-filterLimits.coverage 0:7994
+filterLimits.coverage 0:7954
 filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
@@ -61,11 +59,10 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,I,Um,Y,m5C,m6A
-html rRNA_LRS
 priority 3
 
-track rRNA_MS_consensus
-bigDataUrl rRNA_MS.bigBed
+track tRNA_MS_consensus
+bigDataUrl tRNA_MS.bigBed
 shortLabel Human RNome Project — Mass Spectrometry Modifications
 longLabel Human RNome Project — Mass Spectrometry Modifications
 type bigBed 9 +
@@ -86,7 +83,6 @@ filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
-filterValues.name ac4C,m2,2,7G,m6,6A,mxA,mxC,mxG,mxU
-html rRNA_MS
+filterValues.name D,Q,acp3D,cm5U,f5C,f5Cm,hm5C,hm5Cm,i6A,m2,2G,m5Cm,mchm5U,mcm5U,mcmo5U,ms2i6A,mxA,mxC,mxG,mxU,ncm5U,t6A
 priority 4
 

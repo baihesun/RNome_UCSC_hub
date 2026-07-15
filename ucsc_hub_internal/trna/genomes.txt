@@ -1,0 +1,7 @@
+genome hs_tRNA
+trackDb trackDb.txt
+twoBitPath hs_tRNA.2bit
+defaultPos hs_tRNAAla_AGC:1-76
+organism "Homo sapiens tRNA"
+description "Human RNome Project — tRNA"
+scientificName "Homo sapiens"

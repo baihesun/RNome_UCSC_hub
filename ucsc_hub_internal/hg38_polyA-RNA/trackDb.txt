@@ -1,19 +1,33 @@
-track rRNA_consensus_tiered
-bigDataUrl rRNA_consensus_tiered.bigBed
+track HRP_sequence
+shortLabel Human RNome Project — RNA Sequence
+longLabel Human RNome Project — RNA Sequence
+type bigPsl
+bigDataUrl HRP.bigPsl.bb
+visibility squish
+indelQueryInsert on
+baseColorUseSequence lfExtra
+baseColorDefault diffBases
+showDiffBasesAllScales on
+decorator.default.bigDataUrl HRP_decorator.bigBed
+decorator.default.blockMode overlay
+decorator.default.maxLabelBases 2000000
+priority 1
+
+track polyA_RNA_hg38_consensus_tiered
+bigDataUrl polyA_RNA_hg38_consensus_tiered.bigBed
 shortLabel Human RNome Project — Concensus Modifications
 longLabel Human RNome Project — Concensus Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack
-filterValues.name Am,Cm,Gm,Um,Y,m5C,m6A
+filterValues.name I,Y,m5C,m6A
 filterLabel.name Modification type
 filterValues.tier tier1,tier2
 filterLabel.tier Confidence tier
-html rRNA_consensus_tiered
-priority 1
+priority 2
 
-track rRNA_SRS_consensus
-bigDataUrl rRNA_SRS.bigBed
+track polyA_RNA_hg38_SRS_consensus
+bigDataUrl polyA_RNA_hg38_SRS.bigBed
 shortLabel Human RNome Project — Short-Read Sequencing Modifications
 longLabel Human RNome Project — Short-Read Sequencing Modifications
 type bigBed 9 +
@@ -27,19 +41,18 @@ filterLimits.score 0:1000
 filterLabel.score Detection score
 filter.coverage 0
 filterByRange.coverage on
-filterLimits.coverage 0:13723723
+filterLimits.coverage 0:152007
 filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
 filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
-filterValues.name Am,Cm,Gm,Um,Y,m1A,m3C,m5C,m6A,m7G
-html rRNA_SRS
-priority 2
+filterValues.name I,Y,m5C,m6A
+priority 3
 
-track rRNA_LRS_consensus
-bigDataUrl rRNA_LRS.bigBed
+track polyA_RNA_hg38_LRS_consensus
+bigDataUrl polyA_RNA_hg38_LRS.bigBed
 shortLabel Human RNome Project — Long-Read Sequencing Modifications
 longLabel Human RNome Project — Long-Read Sequencing Modifications
 type bigBed 9 +
@@ -53,7 +66,7 @@ filterLimits.score 0:1000
 filterLabel.score Detection score
 filter.coverage 0
 filterByRange.coverage on
-filterLimits.coverage 0:7994
+filterLimits.coverage 0:8000
 filterLabel.coverage Read coverage
 filter.frequency 0
 filterByRange.frequency on
@@ -61,32 +74,13 @@ filterLimits.frequency 0:100
 filterLabel.frequency Modification frequency (%)
 filterLabel.name Modification type
 filterValues.name Am,Cm,Gm,I,Um,Y,m5C,m6A
-html rRNA_LRS
-priority 3
-
-track rRNA_MS_consensus
-bigDataUrl rRNA_MS.bigBed
-shortLabel Human RNome Project — Mass Spectrometry Modifications
-longLabel Human RNome Project — Mass Spectrometry Modifications
-type bigBed 9 +
-itemRgb on
-visibility pack
-scoreMin 0
-scoreMax 1000
-filter.score 0
-filterByRange.score on
-filterLimits.score 0:1000
-filterLabel.score Detection score
-filter.coverage 0
-filterByRange.coverage on
-filterLimits.coverage 0:1
-filterLabel.coverage Read coverage
-filter.frequency 0
-filterByRange.frequency on
-filterLimits.frequency 0:100
-filterLabel.frequency Modification frequency (%)
-filterLabel.name Modification type
-filterValues.name ac4C,m2,2,7G,m6,6A,mxA,mxC,mxG,mxU
-html rRNA_MS
 priority 4
+
+track NA12878_variants
+bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_intersection.vcf.gz
+shortLabel NA12878 Whole-Genome Sequencing DNA Variants
+longLabel NA12878 Whole-Genome Sequencing DNA Variants
+type vcfTabix
+visibility squish
+maxWindowToDraw 200000
 

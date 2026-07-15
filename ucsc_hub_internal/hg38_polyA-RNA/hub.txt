@@ -1,0 +1,5 @@
+hub HRPpolyA
+shortLabel Human RNome Project — poly(A) RNA
+longLabel Human RNome Project — poly(A) RNA Modifications and Draft Sequence
+genomesFile genomes.txt
+email baihe_sun@mail.dfci.harvard.edu
