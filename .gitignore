@@ -1,4 +1,18 @@
+# Large source data
 data/real/
 supplementary/
-.DS_Store
 reference/*.gtf.gz
+
+# draft_sequence: ignore large source/intermediate files, keep hub assets
+draft_sequence/
+!draft_sequence/HRP.bigPsl.bb
+!draft_sequence/bigPsl.as
+
+# vcfs: large local copies (variants hosted externally via GCS)
+vcfs/
+
+# Downloaded binaries
+utils/pslToBigPsl
+
+# macOS
+.DS_Store

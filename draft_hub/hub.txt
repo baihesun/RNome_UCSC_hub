@@ -1,0 +1,5 @@
+hub HRPdraft
+shortLabel Human RNome Project — Draft Sequence
+longLabel Human RNome Project — Draft Sequence with Modifications
+genomesFile genomes.txt
+email baihe_sun@mail.dfci.harvard.edu

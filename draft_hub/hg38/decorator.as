@@ -1,0 +1,20 @@
+table decorator
+"RNA modification decorators for HRP sequence alignment"
+(
+string   chrom;              "Chromosome"
+uint     chromStart;         "Start position of modification"
+uint     chromEnd;           "End position of modification"
+string   name;               "Modification name (e.g. m6A, m5C)"
+uint     score;              "Score: 1000=tier1, 500=tier2"
+char[1]  strand;             "Strand (+ or -)"
+uint     thickStart;         "Same as chromStart"
+uint     thickEnd;           "Same as chromEnd"
+uint     color;              "Primary RGB color packed as uint"
+int      blockCount;         "Number of blocks (always 1)"
+int[blockCount] blockSizes;  "Block size (modification width)"
+int[blockCount] chromStarts; "Block start relative to chromStart (always 0)"
+string   decoratedItem;      "Parent PSL item: chr:tStart-tEnd:qName"
+string   style;              "Decoration style: block"
+string   fillColor;          "Fill color as hex string"
+string   glyph;              "Glyph type (ignored for block style)"
+)

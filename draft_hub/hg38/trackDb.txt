@@ -1,0 +1,12 @@
+track HRP_sequence
+shortLabel Human RNome Project — Draft Sequence
+longLabel Human RNome Project — Draft Native Sequence Alignment with Modifications
+type bigPsl
+bigDataUrl https://raw.githubusercontent.com/baihesun/RNome_UCSC_hub/main/draft_sequence/HRP.bigPsl.bb
+visibility pack
+baseColorUseCds given
+indelQueryInsert on
+showDiffBasesAllScales on
+decorator.default.bigDataUrl HRP_decorator.bigBed
+decorator.default.blockMode overlay
+priority 1
