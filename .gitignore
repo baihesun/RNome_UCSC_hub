@@ -17,6 +17,7 @@ draft_sequence/HRP.bigPsl.bb
 
 # vcfs: large local copies (variants hosted externally via GCS)
 vcfs/
+ucsc_hub_internal/
 
 # Downloaded binaries
 utils/pslToBigPsl
