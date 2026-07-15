@@ -1,5 +1,0 @@
-hub HRPrRNA
-shortLabel Human RNome Project — rRNA
-longLabel Human RNome Project — rRNA Modifications
-genomesFile genomes.txt
-email baihe_sun@mail.dfci.harvard.edu

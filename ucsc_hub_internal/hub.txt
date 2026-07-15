@@ -1,5 +1,0 @@
-hub RNome
-shortLabel Human RNome Project
-longLabel Human RNome Project
-genomesFile genomes.txt
-email baihe_sun@mail.dfci.harvard.edu
