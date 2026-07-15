@@ -8,6 +8,13 @@ draft_sequence/
 !draft_sequence/HRP.bigPsl.bb
 !draft_sequence/bigPsl.as
 
+# ucsc_hub_internal: no-HTML version for internal UCSC use, not for public repo
+ucsc_hub_internal/
+
+# bigPsl hosted on GCS — too large for GitHub
+ucsc_hub/hg38_polyA-RNA/HRP.bigPsl.bb
+draft_sequence/HRP.bigPsl.bb
+
 # vcfs: large local copies (variants hosted externally via GCS)
 vcfs/
 

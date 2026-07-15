@@ -2,7 +2,7 @@ track HRP_sequence
 shortLabel Human RNome Project — RNA Sequence
 longLabel Human RNome Project — RNA Sequence
 type bigPsl
-bigDataUrl HRP.bigPsl.bb
+bigDataUrl https://storage.googleapis.com/srs000090-wgs/HRP.bigPsl.bb
 visibility squish
 indelQueryInsert on
 baseColorUseSequence lfExtra

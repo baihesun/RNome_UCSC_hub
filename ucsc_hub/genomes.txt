@@ -1,6 +1,6 @@
 genome hg38
 trackDb hg38_polyA-RNA/trackDb.txt
-defaultPos chr21:8400001-8500000
+defaultPos chr6:32659538-32659638
 organism "Homo sapiens"
 description "Human RNome Project"
 
