@@ -146,7 +146,7 @@ TRACK_LABELS = {
 TIERED_TRACK_LABEL = "Human RNome Project — Consensus Modifications"
 
 # RNA sequence track (bigPSL) — file too large for GitHub, hosted on GCS
-BIGPSL_GCS_URL = "https://storage.googleapis.com/hrp_proj/HRP.bigPsl.bb"
+BIGPSL_GCS_URL = "https://storage.googleapis.com/srs000090-wgs/HRP.bigPsl.bb"
 DECORATOR_BIGBED = "HRP_decorator.bigBed"
 
 # ── Assembly config ────────────────────────────────────────────────────────────
@@ -1260,7 +1260,7 @@ def write_trackdb(rna_type):
 """)
         stanzas.append(
             "track NA12878_variants\n"
-            "bigDataUrl https://storage.googleapis.com/hrp_proj/SRS000090.two_caller_intersection.vcf.gz\n"
+            "bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_intersection.vcf.gz\n"
             "shortLabel NA12878 Whole-Genome Sequencing DNA Variants\n"
             "longLabel NA12878 Whole-Genome Sequencing DNA Variants\n"
             "type vcfTabix\n"
@@ -1333,7 +1333,7 @@ def main():
     print(f"\nNext steps:")
     print(f"  1. Update PAPER_URL with actual DOI")
     print(f"  2. Push ucsc_hub/ to GitHub and load hub.txt in UCSC")
-    print(f"  3. Upload HRP.bigPsl.bb to GCS: gsutil cp draft_sequence/HRP.bigPsl.bb gs://hrp_proj/")
+    print(f"  3. Upload HRP.bigPsl.bb to GCS: gsutil cp draft_sequence/HRP.bigPsl.bb gs://srs000090-wgs/")
 
 
 if __name__ == "__main__":
