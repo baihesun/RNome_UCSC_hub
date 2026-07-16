@@ -2,33 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Human RNome Project — RNA Sequence</title>
+  <title>Human RNome Project - RNA Sequence</title>
 </head>
 <body>
-<h2>Human RNome Project — RNA Sequence</h2>
+<h2>Human RNome Project - RNA Sequence</h2>
 <p>
   This track displays individual poly(A) RNA reads aligned to the human genome (hg38),
   visualized as a sequence track using the bigPSL format. Each item represents a single read
   with its nucleotide sequence embedded, enabling base-level inspection of RNA sequence content.
 </p>
 <p>
-  Reads were aligned from BAM files using bamToPsl and converted to bigPSL format.
-  The track is overlaid with a modification decorator layer (HRP_decorator) that annotates
-  each read with RNA modification calls at base resolution, allowing direct comparison of
-  sequence context — such as DRACH motifs associated with m6A — with detected modification sites.
+  Reads were derived from BAM alignments converted to PSL format using bamToPsl, then indexed
+  as bigPSL. The track is annotated with an adjacent modification decorator layer (HRP_decorator)
+  that marks each RNA modification call at base resolution, allowing direct comparison of
+  sequence context (such as DRACH motifs associated with m6A) with detected modification sites.
 </p>
 
 <h3>Display Conventions and Configuration</h3>
 <p>
-  Bases are colored by sequence identity relative to the reference genome:
-  mismatches are highlighted in color, while reference-matching bases are shown in grey.
-  Use the "Color track by bases" option (track controls) to switch between display modes.
+  By default, bases are colored by their identity (A, C, G, T/U), using the standard
+  UCSC base color scheme. To switch to difference highlighting (mismatches vs. reference only),
+  use the "Color track by bases" dropdown in the track controls.
   Zoom in to single-base resolution to view individual nucleotides.
 </p>
 <p>
-  The overlaid modification decorator shows RNA modification calls as colored blocks.
-  Set visibility to "squish" (default) for a compact read display, or "pack" for labeled reads.
+  Modification calls are shown as colored blocks adjacent to each read, colored by modification
+  type according to the table below. The decorator is displayed in adjacent mode by default,
+  placing modification marks below the read sequence rather than on top of it.
+  Set track visibility to "pack" (default) for labeled reads, or "squish" for a compact view.
 </p>
+
+<h3>Modification Type Colors</h3>
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Modification</th><th>Full name</th><th>Color</th><th>Hex</th></tr>
+<tr><td>m6A</td><td>N6-methyladenosine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#003f5c;border:1px solid #999;"></span></td><td>#003f5c</td></tr>
+<tr><td>Am</td><td>2'-O-methyladenosine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#1464a0;border:1px solid #999;"></span></td><td>#1464a0</td></tr>
+<tr><td>Ino / I</td><td>Inosine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#0e8fd4;border:1px solid #999;"></span></td><td>#0e8fd4</td></tr>
+<tr><td>m1A</td><td>N1-methyladenosine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#00b4d8;border:1px solid #999;"></span></td><td>#00b4d8</td></tr>
+<tr><td>m66A</td><td>N6,N6-dimethyladenosine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#00d4b4;border:1px solid #999;"></span></td><td>#00d4b4</td></tr>
+<tr><td>m1acp3Y</td><td>1-methyl-3-(3-amino-3-carboxypropyl)pseudouridine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#00c875;border:1px solid #999;"></span></td><td>#00c875</td></tr>
+<tr><td>Y</td><td>Pseudouridine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#90be6d;border:1px solid #999;"></span></td><td>#90be6d</td></tr>
+<tr><td>Ym</td><td>2'-O-methylpseudouridine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#c9b84c;border:1px solid #999;"></span></td><td>#c9b84c</td></tr>
+<tr><td>Um</td><td>2'-O-methyluridine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#ffa600;border:1px solid #999;"></span></td><td>#ffa600</td></tr>
+<tr><td>m3U</td><td>3-methyluridine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#ff7c43;border:1px solid #999;"></span></td><td>#ff7c43</td></tr>
+<tr><td>Gm</td><td>2'-O-methylguanosine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#ff6361;border:1px solid #999;"></span></td><td>#ff6361</td></tr>
+<tr><td>m7G</td><td>N7-methylguanosine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#dd7371;border:1px solid #999;"></span></td><td>#dd7371</td></tr>
+<tr><td>Cm</td><td>2'-O-methylcytidine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#ef476f;border:1px solid #999;"></span></td><td>#ef476f</td></tr>
+<tr><td>m5C</td><td>5-methylcytidine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#d45087;border:1px solid #999;"></span></td><td>#d45087</td></tr>
+<tr><td>ac4C</td><td>N4-acetylcytidine</td><td><span style="display:inline-block;width:14px;height:14px;background-color:#7b2d8b;border:1px solid #999;"></span></td><td>#7b2d8b</td></tr>
+</table>
 
 <p>
   <strong>Reference:</strong> PLACEHOLDER_DOI
