@@ -3,13 +3,13 @@ shortLabel Human RNome Project — RNA Sequence
 longLabel Human RNome Project — RNA Sequence
 type bigPsl
 bigDataUrl https://storage.googleapis.com/srs000090-wgs/HRP.bigPsl.bb
-visibility squish
+visibility pack
 indelQueryInsert on
 baseColorUseSequence lfExtra
-baseColorDefault diffBases
+baseColorDefault itemBases
 showDiffBasesAllScales on
 decorator.default.bigDataUrl HRP_decorator.bigBed
-decorator.default.blockMode overlay
+decorator.default.blockMode adjacent
 decorator.default.maxLabelBases 2000000
 html HRP_sequence
 priority 1
@@ -85,7 +85,7 @@ bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_int
 shortLabel NA12878 Whole-Genome Sequencing DNA Variants
 longLabel NA12878 Whole-Genome Sequencing DNA Variants
 type vcfTabix
-visibility squish
+visibility pack
 maxWindowToDraw 200000
 html NA12878_variants
 
