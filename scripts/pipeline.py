@@ -796,6 +796,10 @@ def write_html_readme(filename, description, out_dir, title=None, extra_html="")
   <strong>Reference:</strong>
   <a href="{PAPER_URL}">{PAPER_URL}</a>
 </p>
+<p>
+  <strong>Contact:</strong>
+  <a href="mailto:vivian_cheung@brown.edu">vivian_cheung@brown.edu</a>
+</p>
 
 </body>
 </html>
@@ -848,6 +852,31 @@ def generate_html_readmes(descriptions, tiered_descriptions):
                 title=f"{label} tiered consensus", extra_html=extra_html
             )
             print(f"  HTML → {html_path}")
+
+    # ── RNA sequence track description page (polyA only) ─────────────────────
+    polya_hub_dir = os.path.join(HUB_DIR, ASSEMBLY_CFG["polyA_RNA_hg38"]["hub_dir"])
+    seq_html_path = os.path.join(polya_hub_dir, "HRP_sequence.html")
+    if not os.path.exists(seq_html_path):
+        seq_desc = (
+            "This track displays individual poly(A) RNA reads aligned to the human genome (hg38), "
+            "visualized as a sequence track using the bigPSL format. Each item represents a single read "
+            "with its nucleotide sequence embedded, enabling base-level inspection of RNA sequence content. "
+            "Reads were aligned from BAM files using bamToPsl and converted to bigPSL format. "
+            "The track is overlaid with a modification decorator layer (HRP_decorator) that annotates "
+            "each read with RNA modification calls at base resolution, allowing direct comparison of "
+            "sequence context — such as DRACH motifs associated with m6A — with detected modification sites."
+        )
+        write_html_readme(
+            "HRP_sequence.html", seq_desc, polya_hub_dir,
+            title="RNA Sequence",
+            extra_html=(
+                "<h3>Display Conventions and Configuration</h3>\n"
+                "<p>Bases are colored by sequence identity relative to the reference genome: "
+                "mismatches are highlighted in color, while reference-matching bases are shown in grey. "
+                "Zoom in to single-base resolution to view individual nucleotides.</p>"
+            ),
+        )
+        print(f"  HTML → {seq_html_path}")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -925,6 +954,7 @@ def write_hub_txt():
   for poly(A) RNA, ribosomal RNA (rRNA), and transfer RNA (tRNA).
 </p>
 <p><strong>Reference:</strong> PLACEHOLDER_DOI</p>
+<p><strong>Contact:</strong> <a href="mailto:vivian_cheung@brown.edu">vivian_cheung@brown.edu</a></p>
 </body>
 </html>
 """)
@@ -933,7 +963,7 @@ hub RNome
 shortLabel Human RNome Project
 longLabel Human RNome Project
 genomesFile genomes.txt
-email baihe_sun@mail.dfci.harvard.edu
+email vivian_cheung@brown.edu
 descriptionUrl hubDescription.html
 """
     path = os.path.join(HUB_DIR, "hub.txt")
@@ -1034,11 +1064,11 @@ def write_genomes_txt():
         organism  = cfg["organism"]
 
         if rna_type == "polyA_RNA_hg38":
-            # Standard UCSC assembly — no custom 2bit needed
             block = (
                 f"genome {ucsc_name}\n"
                 f"trackDb {hub_dir}/trackDb.txt\n"
-                f"defaultPos chr6:32659538-32659638\n"
+                f"defaultPos chr6:32659538-32659637\n"
+                f"scientificName \"Homo sapiens\"\n"
                 f"organism \"Homo sapiens\"\n"
                 f"description \"Human RNome Project\"\n"
             )
@@ -1048,11 +1078,11 @@ def write_genomes_txt():
                 f"genome {ucsc_name}\n"
                 f"trackDb {hub_dir}/trackDb.txt\n"
                 f"twoBitPath {hub_dir}/hs_tRNA.2bit\n"
-                f"defaultPos hs_tRNAAla_AGC:1-76\n"
+                f"defaultPos hs_tRNAPhe_GAA:1-73\n"
                 f"htmlPath {hub_dir}/assemblyDescription.html\n"
-                f"organism \"{organism}\"\n"
-                f"description \"Human RNome Project\"\n"
                 f"scientificName \"Homo sapiens\"\n"
+                f"organism \"{organism}\"\n"
+                f"description \"Human RNome Project — tRNA\"\n"
             )
         else:  # rRNA
             twobit_dest = cfg["2bit_dest"]
@@ -1063,9 +1093,9 @@ def write_genomes_txt():
                 f"twoBitPath {hub_dir}/{twobit_dest}\n"
                 f"defaultPos hs_rRNA_18S:1-1869\n"
                 f"htmlPath {hub_dir}/assemblyDescription.html\n"
-                f"organism \"{organism}\"\n"
-                f"description \"Human RNome Project\"\n"
                 f"scientificName \"Homo sapiens\"\n"
+                f"organism \"{organism}\"\n"
+                f"description \"Human RNome Project — rRNA\"\n"
             )
         lines.append(block)
 
@@ -1156,6 +1186,7 @@ def write_trackdb(rna_type):
             f"decorator.default.bigDataUrl {DECORATOR_BIGBED}\n"
             "decorator.default.blockMode overlay\n"
             "decorator.default.maxLabelBases 2000000\n"
+            "html HRP_sequence\n"
             "priority 1\n"
         )
 
@@ -1229,7 +1260,7 @@ def write_trackdb(rna_type):
 """)
         stanzas.append(
             "track NA12878_variants\n"
-            "bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_intersection.vcf.gz\n"
+            "bigDataUrl https://storage.googleapis.com/hrp_proj/SRS000090.two_caller_intersection.vcf.gz\n"
             "shortLabel NA12878 Whole-Genome Sequencing DNA Variants\n"
             "longLabel NA12878 Whole-Genome Sequencing DNA Variants\n"
             "type vcfTabix\n"

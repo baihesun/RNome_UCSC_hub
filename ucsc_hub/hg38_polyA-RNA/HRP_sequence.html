@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Human RNome Project — RNA Sequence</title>
+</head>
+<body>
+<h2>Human RNome Project — RNA Sequence</h2>
+<p>
+  This track displays individual poly(A) RNA reads aligned to the human genome (hg38),
+  visualized as a sequence track using the bigPSL format. Each item represents a single read
+  with its nucleotide sequence embedded, enabling base-level inspection of RNA sequence content.
+</p>
+<p>
+  Reads were aligned from BAM files using bamToPsl and converted to bigPSL format.
+  The track is overlaid with a modification decorator layer (HRP_decorator) that annotates
+  each read with RNA modification calls at base resolution, allowing direct comparison of
+  sequence context — such as DRACH motifs associated with m6A — with detected modification sites.
+</p>
+
+<h3>Display Conventions and Configuration</h3>
+<p>
+  Bases are colored by sequence identity relative to the reference genome:
+  mismatches are highlighted in color, while reference-matching bases are shown in grey.
+  Use the "Color track by bases" option (track controls) to switch between display modes.
+  Zoom in to single-base resolution to view individual nucleotides.
+</p>
+<p>
+  The overlaid modification decorator shows RNA modification calls as colored blocks.
+  Set visibility to "squish" (default) for a compact read display, or "pack" for labeled reads.
+</p>
+
+<p>
+  <strong>Reference:</strong> PLACEHOLDER_DOI
+</p>
+<p>
+  <strong>Contact:</strong> <a href="mailto:vivian_cheung@brown.edu">vivian_cheung@brown.edu</a>
+</p>
+</body>
+</html>

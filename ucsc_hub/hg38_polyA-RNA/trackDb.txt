@@ -2,7 +2,7 @@ track HRP_sequence
 shortLabel Human RNome Project — RNA Sequence
 longLabel Human RNome Project — RNA Sequence
 type bigPsl
-bigDataUrl https://storage.googleapis.com/srs000090-wgs/HRP.bigPsl.bb
+bigDataUrl https://storage.googleapis.com/hrp_proj/HRP.bigPsl.bb
 visibility squish
 indelQueryInsert on
 baseColorUseSequence lfExtra
@@ -11,6 +11,7 @@ showDiffBasesAllScales on
 decorator.default.bigDataUrl HRP_decorator.bigBed
 decorator.default.blockMode overlay
 decorator.default.maxLabelBases 2000000
+html HRP_sequence
 priority 1
 
 track polyA_RNA_hg38_consensus_tiered
@@ -80,7 +81,7 @@ html polyA_RNA_hg38_LRS
 priority 4
 
 track NA12878_variants
-bigDataUrl https://storage.googleapis.com/srs000090-wgs/SRS000090.two_caller_intersection.vcf.gz
+bigDataUrl https://storage.googleapis.com/hrp_proj/SRS000090.two_caller_intersection.vcf.gz
 shortLabel NA12878 Whole-Genome Sequencing DNA Variants
 longLabel NA12878 Whole-Genome Sequencing DNA Variants
 type vcfTabix
