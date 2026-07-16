@@ -11,6 +11,9 @@ draft_sequence/
 # ucsc_hub_internal: no-HTML version for internal UCSC use, not for public repo
 ucsc_hub_internal/
 
+# nersc_upload: local data manifest for NERSC upload, not for public repo
+nersc_upload/
+
 # bigPsl hosted on GCS — too large for GitHub
 ucsc_hub/hg38_polyA-RNA/HRP.bigPsl.bb
 draft_sequence/HRP.bigPsl.bb
