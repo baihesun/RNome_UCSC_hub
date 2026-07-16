@@ -1,7 +1,7 @@
 track rRNA_consensus_tiered
 bigDataUrl rRNA_consensus_tiered.bigBed
-shortLabel Human RNome Project — Concensus Modifications
-longLabel Human RNome Project — Concensus Modifications
+shortLabel Human RNome Project — Consensus Modifications
+longLabel Human RNome Project — Consensus Modifications
 type bigBed 9 +
 itemRgb on
 visibility pack

@@ -4,10 +4,11 @@ process_files.py -- data organization and UCSC hub generation
 Steps:
   1. Split combined BED files by RNA type → final_data/{RNA_type}/{RNA_type}_{Modality}.bed
   2. Convert split BED files to bigBed (per-platform), plus tiered consensus
-     TSVs (concensus_tsvs/) to bigBed (per RNA type, already split)
+     bed (concensus/consensus_draft_sequence.bed) to bigBed (per RNA type)
   3. Generate UCSC hub (ucsc_hub/) with hub.txt, genomes.txt, per-assembly trackDb
   4. Generate per-file HTML readmes (descriptions sourced from RNA_modifications_manifest.tsv)
   5. Generate Excel manifest
+  6. Generate decorator bigBed for RNA sequence track (scripts/make_decorator.py)
 
 Each modality (SRS, LRS, MS) is a single pre-merged consensus BED file —
 there are no per-experiment subtracks in this hub. Each RNA type also gets a
@@ -142,7 +143,11 @@ TRACK_LABELS = {
     "LRS": "Human RNome Project — Long-Read Sequencing Modifications",
     "MS":  "Human RNome Project — Mass Spectrometry Modifications",
 }
-TIERED_TRACK_LABEL = "Human RNome Project — Concensus Sequence"
+TIERED_TRACK_LABEL = "Human RNome Project — Consensus Modifications"
+
+# RNA sequence track (bigPSL) — file too large for GitHub, hosted on GCS
+BIGPSL_GCS_URL = "https://storage.googleapis.com/hrp_proj/HRP.bigPsl.bb"
+DECORATOR_BIGBED = "HRP_decorator.bigBed"
 
 # ── Assembly config ────────────────────────────────────────────────────────────
 
@@ -1033,7 +1038,7 @@ def write_genomes_txt():
             block = (
                 f"genome {ucsc_name}\n"
                 f"trackDb {hub_dir}/trackDb.txt\n"
-                f"defaultPos chr21:8400001-8500000\n"
+                f"defaultPos chr6:32659538-32659638\n"
                 f"organism \"Homo sapiens\"\n"
                 f"description \"Human RNome Project\"\n"
             )
@@ -1135,8 +1140,26 @@ def write_trackdb(rna_type):
     safe_rna = safe_id(rna_type)
     stanzas  = []
 
+    # ── RNA sequence track (bigPSL + modification decorators) — polyA only ──────
+    if rna_type == "polyA_RNA_hg38":
+        stanzas.append(
+            "track HRP_sequence\n"
+            "shortLabel Human RNome Project — RNA Sequence\n"
+            "longLabel Human RNome Project — RNA Sequence\n"
+            "type bigPsl\n"
+            f"bigDataUrl {BIGPSL_GCS_URL}\n"
+            "visibility squish\n"
+            "indelQueryInsert on\n"
+            "baseColorUseSequence lfExtra\n"
+            "baseColorDefault diffBases\n"
+            "showDiffBasesAllScales on\n"
+            f"decorator.default.bigDataUrl {DECORATOR_BIGBED}\n"
+            "decorator.default.blockMode overlay\n"
+            "decorator.default.maxLabelBases 2000000\n"
+            "priority 1\n"
+        )
+
     # ── Tiered cross-platform consensus track (vivid=tier1, pale=tier2) ─────────
-    # Listed first / highest priority so it appears at the top of the track list.
     if has_tiered:
         tiered_tid  = f"{safe_rna}_consensus_tiered"
         tiered_bed  = os.path.join(FINAL_DATA_DIR, rna_type, f"{rna_type}_consensus_tiered.bed")
@@ -1144,6 +1167,7 @@ def write_trackdb(rna_type):
         mod_names   = get_mod_names(tiered_bed)
         tier_values = get_field_values(tiered_bed, 9)
 
+        tiered_priority = 2 if rna_type == "polyA_RNA_hg38" else 1
         if _tiered_bigbed_exists(rna_type, cfg):
             stanzas.append(
                 f"track {tiered_tid}\n"
@@ -1158,12 +1182,13 @@ def write_trackdb(rna_type):
                 f"filterValues.tier {tier_values}\n"
                 f"filterLabel.tier Confidence tier\n"
                 f"html {tiered_html}\n"
-                f"priority 1\n"
+                f"priority {tiered_priority}\n"
             )
         else:
             stanzas.append(f"# TODO: {rna_type}_consensus_tiered.bigBed not yet generated\n")
 
-    for priority, modality in enumerate(present, 2 if has_tiered else 1):
+    base_priority = (3 if rna_type == "polyA_RNA_hg38" else 2) if has_tiered else (2 if rna_type == "polyA_RNA_hg38" else 1)
+    for priority, modality in enumerate(present, base_priority):
         consensus_tid = f"{safe_rna}_{modality}_consensus"
         bigbed_fname  = f"{rna_type}_{modality}.bigBed"
         html_ref      = f"{rna_type}_{modality}"
@@ -1241,6 +1266,25 @@ def generate_hub_config():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# Step 6 — Decorator bigBed for RNA sequence track
+# ══════════════════════════════════════════════════════════════════════════════
+
+def generate_decorator():
+    """Run make_decorator.py to build HRP_decorator.bigBed in ucsc_hub/hg38_polyA-RNA/."""
+    print("\n── Step 6: Generating RNA sequence decorator ──")
+    script = os.path.join("scripts", "make_decorator.py")
+    if not os.path.exists(script):
+        print(f"  [SKIP] {script} not found")
+        return
+    result = subprocess.run(["python", script], capture_output=True, text=True)
+    if result.stdout:
+        for line in result.stdout.strip().splitlines():
+            print(f"  {line}")
+    if result.returncode != 0:
+        print(f"  [ERROR] make_decorator.py failed:\n{result.stderr.strip()}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # Main
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -1253,10 +1297,12 @@ def main():
     generate_html_readmes(descriptions, tiered_descriptions)
     generate_excel_manifest(descriptions, tiered_descriptions)
     generate_hub_config()
+    generate_decorator()
     print("\nDone.")
     print(f"\nNext steps:")
     print(f"  1. Update PAPER_URL with actual DOI")
     print(f"  2. Push ucsc_hub/ to GitHub and load hub.txt in UCSC")
+    print(f"  3. Upload HRP.bigPsl.bb to GCS: gsutil cp draft_sequence/HRP.bigPsl.bb gs://hrp_proj/")
 
 
 if __name__ == "__main__":
